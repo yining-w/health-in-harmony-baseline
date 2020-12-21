@@ -1,4 +1,3 @@
-
 library(shiny)
 library(shinydashboard)
 library(callr)
@@ -6,17 +5,25 @@ library(tidyverse)
 library(leaflet)
 library(tidyverse)
 library(leaflet.extras)
+library(viridis)
 library(shinyWidgets)
 library(shinythemes)
 library(rhandsontable)
 library(RColorBrewer)
-library(rsconnect)
 remove(list=ls())
+
+####### read data #######
+merged = read.csv('~/GitHub/health-in-harmony-baseline-/Baseline_Survey/data/menage_latlong.csv')
+
+##### Map Set up ######
+wardpal <- colorFactor(palette ='PuBuGn', domain=gps$gpstrate)
+
+
+
 
 # Define UI for application that draws a histogram
 ui <-
     ### HEADER
-    
     ###NAVBAR
         navbarPage(
             theme=shinytheme("journal"),
@@ -54,6 +61,13 @@ ui <-
                 "Baseline Survey Results", div(class="outer",
                 
                 br(),
+                leafletOutput("map", height = "750px"),
+                absolutePanel(id = "controls", top = 10, left = 10, width = "auto",
+                              class = "panel panel-default",
+                              draggable = TRUE, height = 'auto', 
+                              collapsible = TRUE,
+                              h4("Manombo Map")
+                ),
                 
                 h4("Manombo"),
                 p("In 2019, with rainforest communities, local nonprofits, and renowned conservation organizations,
@@ -84,15 +98,23 @@ ui <-
     
     
 # Define server logic required to draw a histogram
-server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+server <- function(input, output)  { 
+    output$map <- renderLeaflet({
+        map= leaflet() %>%
+            addProviderTiles('CartoDB.Positron') %>%
+            addProviderTiles('Stamen.TonerLines',
+                             options = providerTileOptions(opacity = 0.35)) %>%
+            addProviderTiles('Stamen.TonerLabels')
+        
+        map= map %>% 
+            addCircleMarkers(data = gps,
+                             lng = ~gpslon, 
+                             lat = ~gpslat,
+                             color = ~wardpal(gpstrate),
+                             label = ~hh1a,
+                             radius = 4,
+                             opacity = 1
+            ) 
     })
 }
 
