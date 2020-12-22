@@ -142,7 +142,7 @@ femme <- femme %>% rename(birth_2y = mn1,
                )
 
 
-# Sterilization P1 #############################################################
+# Sterilization knowledge #############################################################
 
 femme <- femme %>% rename(ster_f_ster = cp1a,
                           ster_m_ster = cp1b,
@@ -179,6 +179,198 @@ femme <- femme %>% rename(ster_f_ster = cp1a,
                   )%>%
         rename(ster_other = cp1_autre)
 
-# Sterilization P2 #############################################################
+# Sterilization where knowledge #################################################
 
-femme <- femme %>% rename()
+femme <- femme %>% rename(ster_place_hosp_pu = cp4a,
+                          ster_place_cent_pu = cp4b,
+                          ster_place_clincpf_pu = cp4c,
+                          ster_place_clinmo_pu = cp4d,
+                          ster_place_agent_pu = cp4e,
+                          ster_place_hosp_pr = cp4g,
+                          ster_place_clinc_pr = cp4h,
+                          ster_place_pharm_pr = cp4i,
+                          ster_place_med_pr = cp4j,
+                          ster_place_clinmo_pr = cp4k,
+                          ster_place_agent_pr = cp4l,
+                          ster_place_bout = cp4n,
+                          ster_place_reli = cp4o,
+                          ster_place_close = cp4p
+                          ) %>%
+        select(-cp4, -cp4f, -cp4m, -cp4x, -cp4nr) %>%
+        mutate_at(.vars=vars(starts_with("ster_place")),
+                  ~ifelse(grepl('[A-Z]', .), TRUE, NA)
+        ) %>%
+        rename(ster_place_know = cp3,
+               ster_place_other_pu = cp4f_autre,
+               ster_place_other_pr = cp4m_autre,
+               ster_place_other = cp4_autre
+               ) %>%
+        mutate(ster_place_know = case_when(
+                ster_place_know == 'Oui' ~ TRUE,
+                ster_place_know == 'Non' ~ FALSE,
+                TRUE ~ NA
+                )
+        )
+
+
+# Sterilization use #############################################################
+
+femme <- femme %>% rename(ster_used_f_ster = cp6a,
+                          ster_used_m_ster = cp6b,
+                          ster_used_iud = cp6c,
+                          ster_used_inje = cp6d,
+                          ster_used_impl = cp6e,
+                          ster_used_pill = cp6f,
+                          ster_used_m_cond = cp6g,
+                          ster_used_f_cond = cp6h,
+                          ster_used_morn = cp6i,
+                          ster_used_fixe = cp6j,
+                          ster_used_amen = cp6k,
+                          ster_used_rhyt = cp6l,
+                          ster_used_with = cp6m) %>%
+        select(-cp6, -cp6x, -cp6nr) %>%
+        mutate_at(.vars=vars(starts_with("ster_used")),
+                  ~ifelse(grepl('[A-Z]', .), TRUE, NA)
+                ) %>%
+        rename(ster_used = cp5,
+                       ster_used_other = cp6_autre) %>%
+        mutate(ster_used = case_when(
+                ster_used == 'Oui' ~ TRUE,
+                ster_used == 'Non' ~ FALSE,
+                TRUE ~ NA
+                )
+               )
+
+# Sterilization using #############################################################
+
+femme <- femme %>% rename(ster_using_f_ster = cp10a,
+                          ster_using_m_ster = cp10b,
+                          ster_using_iud = cp10c,
+                          ster_using_inje = cp10d,
+                          ster_using_impl = cp10e,
+                          ster_using_pill = cp10f,
+                          ster_using_m_cond = cp10g,
+                          ster_using_f_cond = cp10h,
+                          ster_using_morn = cp10i,
+                          ster_using_fixe = cp10j,
+                          ster_using_amen = cp10k,
+                          ster_using_rhyt = cp10l,
+                          ster_using_with = cp10m) %>%
+        select(-cp10, -cp10x, -cp10nr) %>%
+        mutate_at(.vars=vars(starts_with("ster_using")),
+                  ~ifelse(grepl('[A-Z]', .), TRUE, NA)
+        ) %>%
+        rename(ster_using = cp9,
+               ster_using_other = cp10_autre) %>%
+        mutate(ster_used = case_when(
+                ster_used == 'Oui' ~ TRUE,
+                ster_used == 'Non' ~ FALSE,
+                TRUE ~ NA
+        )
+        ) %>%
+        rename(ster_child_num = cp7,
+               ster_preg = cp8) %>%
+        mutate(ster_preg = case_when(
+                ster_preg == 'Oui' ~ TRUE,
+                ster_preg == 'Non' ~ FALSE,
+                TRUE ~ NA
+        ))
+
+# Sterilization why not ########################################################
+
+femme <-femme %>% rename(ster_whynot = cp11,
+                 ster_whynot_other = cp11_autre) %>%
+        mutate(
+                ster_whynot = fct_recode(ster_whynot,
+                                 'Non married' = 'NON MARIÉE',
+                                 'No rap. sexual / rap. sexual few frequent' = 'PAS DE RAP. SEXUELS/RAP. SEXUELS PEU FRÉQUENTS',
+                                 'Menopause / hysterectomy' = 'MÉNOPAUSE/HYSTÉRECTOMIE',
+                                 'Under-fertile / sterile' = 'SOUS-FÉCONDE/STÉRILE',
+                                 'Want so many children as possible'= "VEUT AUTANT D'ENFANTS QUE POSSIBLE",
+                                 'Respondent opposite' = 'ENQUÊTÉE OPPOSÉE',
+                                 'Husband / opposite partner' = 'MARI/PARTENAIRE OPPOSÉ',
+                                 'Other opposing people' = 'AUTRES PERSONNES OPPOSÉES',
+                                 'Religious prohibitions' = 'INTERDITS RELIGIEUX',
+                                 "Doesn't know any method" = 'NE CONNAÎT AUCUNE MÉTHODE',
+                                 'Knows no source' = 'NE CONNAÎT AUCUNE SOURCE',
+                                 'Health problems' = 'PROBLÈMES DE SANTÉ',
+                                 'Fear of side effects' = 'PEUR DES EFFETS SECONDAIRES',
+                                 'Not accessible / too far' = 'PAS ACCESSIBLE/TROP LOIN',
+                                 'Too expensive' = 'TROP CHER',
+                                 'Not practical to use' = 'PAS PRATIQUE À UTILISER',
+                                 'Interferes with normal body functions' = 'INTERFÈRE AVEC FONCTIONS NORMALES DU CORPS',
+                                 'Other' = 'AUTRE',
+                                 "Don't know" = 'NE SAIT PAS',
+                                 'No response' = 'NON REPONSE'),
+                ster_whynot_type = case_when(
+                        as.numeric(ster_whynot) <= 1 ~ "Non married",
+                        as.numeric(ster_whynot) <= 5 ~ "Reasons related to fertility",
+                        as.numeric(ster_whynot) <= 9 ~ "Opposition to use",
+                        as.numeric(ster_whynot) <= 11 ~ "Lack of knowledge",
+                        as.numeric(ster_whynot) <= 17 ~ "Reasons related to methods",
+                        as.numeric(ster_whynot) == 18 ~ "Other",
+                        as.numeric(ster_whynot) == 19 ~ "Don't know"
+                        ),
+                ster_whynot_type = factor(ster_whynot_type, 
+                          levels= c("Non married","Reasons related to fertility",
+                                    "Opposition to use","Lack of knowledge",
+                                    "Reasons related to methods","Other",
+                                    "Don't know"))
+)
+
+# Sterilization where get ########################################################
+
+femme <- femme %>% rename(ster_modern_using = cp12,
+                          ster_get_hosp_pu = cp13a,
+                          ster_get_cent_pu = cp13b,
+                          ster_get_clincpf_pu = cp13c,
+                          ster_get_clinmo_pu = cp13d,
+                          ster_get_agent_pu = cp13e,
+                          ster_get_hosp_pr = cp13g,
+                          ster_get_clinc_pr = cp13h,
+                          ster_get_pharm_pr = cp13i,
+                          ster_get_med_pr = cp13j,
+                          ster_get_clinmo_pr = cp13k,
+                          ster_get_agent_pr = cp13l,
+                          ster_get_bout = cp13n,
+                          ster_get_reli = cp13o,
+                          ster_get_close = cp13p) %>%
+        mutate(ster_modern_using = case_when(
+                ster_modern_using == 'Oui' ~ TRUE,
+                ster_modern_using == 'Non' ~ FALSE,
+                TRUE ~ NA
+                )
+        ) %>% 
+        select(-cp13, -cp13f, -cp13m, -cp13x, -cp13nr) %>%
+        mutate_at(.vars=vars(starts_with("ster_get")),
+                  ~ifelse(grepl('[A-Z]', .), TRUE, NA)
+        ) %>%
+        rename(ster_get_other_pu = cp13f_autre,
+               ster_get_other_pi = cp13m_autre,
+               ster_get_other = cp13_autre)
+
+
+# Last questions ########################################################
+
+femme <- femme %>% rename(ster_npreg_nster = cp14,
+                          ster_future = cp15,
+                          ster_whynot_future = cp16,
+                          ster_whynot_future_other = cp16_autre,
+                          ster_wanted_childs = un1) %>%
+        mutate(ster_npreg_nster = case_when(
+                ster_npreg_nster == 'Oui' ~ TRUE,
+                ster_npreg_nster == 'Non' ~ FALSE,
+                TRUE ~ NA),
+               ster_future = fct_recode(ster_future,
+                                        'Yes' = "Oui",
+                                        'No' = 'Non',
+                                        'Not sure / Not decided' = 'Pas sur / Pas décidée',
+                                        'No reponse' = 'Non reponse'),
+               ster_wanted_childs_other = case_when(
+                       ster_wanted_childs == 94 ~ "I cannot give the numbers",
+                       ster_wanted_childs == 95 ~ "What God gives us"
+                               ),
+               ster_wanted_childs = ifelse(ster_wanted_childs > 90, NA, ster_wanted_childs)
+               )
+        
+        
