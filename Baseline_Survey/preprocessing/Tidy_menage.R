@@ -137,8 +137,6 @@ menage <- mutate_all(menage, .funs=toupper)
 # change all Oui/Non #############################################################
 menage = menage %>% mutate_at(.vars=vars(starts_with("bool_grows_traditional")),
                               ~ifelse(grepl('TRADITIONNEL', .), 0, 1))
-menage = menage %>% mutate_at(.vars=vars(starts_with("bool_")),
-                              ~ifelse(grepl('NON', .), 0, 1))
 
 
 
