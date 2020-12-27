@@ -123,5 +123,10 @@ summary_enfant = enfant %>% group_by(reserve_section, village_code) %>%
 
 summary_enfant = merge(summary_enfant, obs_enfant, by = "village_code")
 
+##COME BACK TO THIS
+#test= 
+#  for (i in 3:58) {
+#  summary_enfant[i]/summary_enfant$n
+#}
 
-write.csv(summary_efnant,)
+#write.csv(summary_efnant,)
