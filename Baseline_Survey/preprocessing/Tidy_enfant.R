@@ -1,7 +1,7 @@
 library(tidyverse)
 library(here)
 rm(list=ls())
-load(here("Baseline_Survey/data/enfant.RData"))
+load("~/GitHub/Baseline_Survey/data/enfant.RData")
 
 # Remote White Space ########################
 dfList <- list(enfant)
@@ -16,7 +16,7 @@ enfant = dfList[[1]]
 # Administrative data #############################################################
 
 #Changing the name of administrative columns
-enfant <- enfant%>% rename(interviewer = ch5,
+enfant <- enfant %>% rename(interviewer = ch5,
                           village_code = ch1, 
                           household_number = ch2,
                           child_line = ch3,
@@ -35,10 +35,8 @@ enfant <- enfant%>% rename(interviewer = ch5,
                           interview_min_e = ch11mn,
                           se_had_diarrhea = se1,
                           se_diarrhea_treated = se2,
-                          se3_all = se3,
                           se_fever = se4,
                           se_fever_treatment = se5,
-                          se6_all = se6,
                           se_cough = se7,
                           se_cough_treatment = se8) %>%
   #Deleting columns about time and others with no info
@@ -46,45 +44,11 @@ enfant <- enfant%>% rename(interviewer = ch5,
          -se3nr, -se3f_autre, -se3l_autre,
          -se6nr, -se6f_autre, -se6l_autre, 
          -se9nr, -se9f_autre, -se9l_autre,
-         -se9, -23, -46) %>%
-  #Translating
-  mutate(permission = case_when(
-    permission == "Oui" ~ TRUE,
-    TRUE ~ FALSE
-  ),
-  se_had_diarrhea = case_when(
-    se_had_diarrhea == "Oui" ~ TRUE,
-    TRUE ~ FALSE),
-  se_diarrhea_treated = case_when(
-    se_diarrhea_treated == "Oui" ~ TRUE,
-    TRUE ~ FALSE),
-  se_fever = case_when(
-    se_fever == "Oui" ~ TRUE,
-    TRUE ~ FALSE),
-  se_fever_treatment = case_when(
-    se_fever_treatment == "Oui" ~ TRUE,
-    TRUE ~ FALSE),
-  se_cough = case_when(
-    se_cough == "Oui" ~ TRUE,
-    TRUE ~ FALSE),
-  se_cough_treatment = case_when(
-    se_cough_treatment == "Oui" ~ TRUE,
-    TRUE ~ FALSE),
-  completeness = case_when(
-    completeness == "Completé" ~ "Complete",
-    completeness == "Pas à la maison" ~ "Not at home",
-    completeness == "Refusée" ~ "Refusal",
-    completeness == "Partiellement completé" ~ "Partially completed",
-    completeness == "En incapacité" ~ "Incapacitated",
-    completeness == "Autre" ~ "Other"
-  ),
-  completeness = factor(completeness, 
-                        levels = c("Complete",
-                                   "Not at home",
-                                   "Refusal",
-                                   "Partially completed",
-                                   "Incapacitated",
-                                   "Other"))
+         -se9, -se6, -se3) 
+
+enfant$completeness = case_when(
+    enfant$completeness == "Completé" ~ 1,
+    enfant$completeness == "Pas à la maison" ~ 0
   )
 
 # seek care data #############################################################
@@ -138,8 +102,26 @@ enfant <- enfant %>% rename(care_cough_hospital = se9a,
                           care_fever_traditional = se6o,
                           care_fever_other = se6x) 
 
-###Change all to True or False
-v=c(names(enfant[20:35]),names(enfant[39:54]),names(enfant[58:73]))
+###Change all to 0 or 1
+v=c(names(enfant[20:35]),names(enfant[39:54]),names(enfant[58:73])) ## check all that apply
 
-enfant[v] <- lapply(enfant[v],function(x){ifelse(x=='', FALSE, TRUE)})
+enfant[v] <- lapply(enfant[v],function(x){ifelse(x=='', 0, 1)})
 
+a=c(names(enfant[14]), names(enfant[18:19]), names(enfant[37:38]), names(enfant[56:57])) ##yes or no
+enfant[a] <- lapply(enfant[a],function(x){ifelse(x=='Non', 0, 1)})
+
+enfant[is.na(enfant)] <- 0
+
+##Remove unused variables
+enfant =
+  enfant %>% select(c(-household_number, -child_line, -mother_line, -team_leader, -interview_day,
+                    -interview_hour_s, -interview_min, -interview_hour_e, -interview_min_e))
+
+obs_enfant = enfant %>% group_by(village_code) %>% tally()
+summary_enfant = enfant %>% group_by(reserve_section, village_code) %>% 
+  summarize_if(is.numeric, sum, na.rm=TRUE)
+
+summary_enfant = merge(summary_enfant, obs_enfant, by = "village_code")
+
+
+write.csv(summary_efnant,)
