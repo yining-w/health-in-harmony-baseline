@@ -1,13 +1,9 @@
 rm(list=ls())
 library(tidyverse)
 library(sf)
-#library(usethis)
-#library(rmapzen)
-#library(readr)
 
-
-load("gps.RData")
-load("menage.RData")
+load(here("Baseline_Survey/data/gps.RData"))
+load(here("Baseline_Survey/data/menage.RData"))
 
 gps = gps %>%
     rename(
@@ -31,3 +27,4 @@ merged = merge(gps, menage, by = "hh1a")
 
 #save
 write.csv(merged, "menage_latlong.csv")
+
