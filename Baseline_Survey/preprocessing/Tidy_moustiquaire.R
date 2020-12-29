@@ -75,7 +75,7 @@ moustiquaire = moustiquaire %>% mutate_at(.vars=vars(starts_with("alpha_")),
                                           ~ifelse(grepl('', .), 0, 1))
 
 moustiquaire$numeric_mosq_net_number <- as.numeric(as.character(moustiquaire$numeric_mosq_net_number))
-
+?is.numeric
 #Adding info from other tables #####################################################
 
 #Adding the number of members of the household
