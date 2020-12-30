@@ -1,38 +1,39 @@
 library(tidyverse)
 library(here)
-
+remove(list=ls())
 load(here("Baseline_Survey/data/femme.RData"))
 
 # Administrative data #############################################################
+femme <- femme %>% select(-contains(c("autre", "nr")))
 
 #Changing the name of administrative columns
-femme <- femme %>% rename(intervier = wm5,
-                          village_code = wm1, 
-                          household_number = wm2,
-                          woman_line = wm3,
-                          woman_name = wm3a,
-                          reserve_section = wmstrate,
-                          team_leader = wm4,
-                          permission = wm8,
-                          completeness = wm16) %>%
+femme <- femme %>% rename(hh_interviewer = wm5,
+                          hh_village_code = wm1, 
+                          hh_household_number = wm2,
+                          hh_woman_line = wm3,
+                          hh_woman_name = wm3a,
+                          hh_reserve_section = wmstrate,
+                          hh_team_leader = wm4,
+                          hh_permission = wm8,
+                          hh_completeness = wm16) %>%
         #Deleting columns about time and others with no info
         select(-wm6jj, -wm6mm, -wm6aa,
                -wm7hh, -wm7mn, -wm10hh,
                -wm10mn, -wm16a, -finwm) %>%
         #Translating
-        mutate(permission = case_when(
-                                permission == "Oui" ~ TRUE,
+        mutate(hh_permission = case_when(
+                                hh_permission == "Oui" ~ TRUE,
                                 TRUE ~ FALSE
                                 ),
-               completeness = case_when(
-                                completeness == "Completé" ~ "Complete",
-                                completeness == "Pas à la maison" ~ "Not at home",
-                                completeness == "Refusée" ~ "Refusal",
-                                completeness == "Partiellement completé" ~ "Partially completed",
-                                completeness == "En incapacité" ~ "Incapacitated",
-                                completeness == "Autre" ~ "Other"
+               hh_completeness = case_when(
+                                hh_completeness == "Completé" ~ "Complete",
+                                hh_completeness == "Pas à la maison" ~ "Not at home",
+                                hh_completeness == "Refusée" ~ "Refusal",
+                                hh_completeness == "Partiellement completé" ~ "Partially completed",
+                                hh_completeness == "En incapacité" ~ "Incapacitated",
+                                hh_completeness == "Autre" ~ "Other"
                                 ),
-               completeness = factor(completeness, 
+               hh_completeness = factor(hh_completeness, 
                                      levels = c("Complete",
                                                 "Not at home",
                                                 "Refusal",
@@ -43,36 +44,36 @@ femme <- femme %>% rename(intervier = wm5,
         
 # children data #############################################################
 
-femme <- femme %>% rename(birth = cm1,
-                          children_household = cm2,
-                          sons_household = cm3,
-                          daughters_household = cm4,
-                          children_not_household = cm5,
-                          sons_not_household = cm6,
-                          daughters_not_household = cm7,
-                          children_died = cm8,
-                          sons_died = cm9,
-                          daughters_died = cm10) %>%
+femme <- femme %>% rename(bool_hh_birth = cm1,
+                          bool_hh_children_household = cm2,
+                          numeric_hh_sons_household = cm3,
+                          numeric_hh_daughters_household = cm4,
+                          bool_hh_children_not_household = cm5,
+                          numeric_hh_sons_not_household = cm6,
+                          numeric_hh_daughters_not_household = cm7,
+                          bool_hh_children_died = cm8,
+                          numeric_hh_sons_died = cm9,
+                          numeric_hh_daughters_died = cm10) %>%
         #Deleting columns with no useful info and duplicated info
         select(-cm12, -cm11, -cm14, -cm15,
                -cm17, -cm18, -bh12) %>%
         #Translating
-        mutate(birth = case_when(
-                                birth == 'Oui' ~ TRUE,
-                                birth == 'Non' ~ FALSE
+        mutate(bool_hh_birth = case_when(
+                                bool_hh_birth == 'Oui' ~ TRUE,
+                                bool_hh_birth == 'Non' ~ FALSE
                                 ),
-               children_household = case_when(
-                                children_household == 'Oui' ~ TRUE,
-                                children_household == 'Non' ~ FALSE
+               bool_hh_children_household = case_when(
+                                bool_hh_children_household == 'Oui' ~ TRUE,
+                                bool_hh_children_household == 'Non' ~ FALSE
                                 ),
-               children_not_household = case_when(
-                                children_not_household == 'Oui' ~ TRUE,
-                                children_not_household == 'Non' ~ FALSE
+               bool_hh_children_not_household = case_when(
+                                bool_hh_children_not_household == 'Oui' ~ TRUE,
+                                bool_hh_children_not_household == 'Non' ~ FALSE
                                 ),
-               children_died = case_when(
-                       children_died == 'Oui' ~ TRUE,
-                       children_died == 'Non' ~ FALSE,
-                       !is.na(children_died) ~ NA #The NA is because there was a non respond
+               bool_hh_children_died = case_when(
+                       bool_hh_children_died == 'Oui' ~ TRUE,
+                       bool_hh_children_died == 'Non' ~ FALSE,
+                       !is.na(bool_hh_children_died) ~ NA #The NA is because there was a non respond
                ),
                )
 
@@ -80,7 +81,6 @@ femme <- femme %>% rename(birth = cm1,
 
 femme <- femme %>% rename(birth_2y = mn1,
                           birth_place = mn2,
-                          birth_place_other = mn2_autre,
                           birth_assist_med = mn3a,
                           birth_assist_nurse = mn3b,
                           birth_assist_assist = mn3c,
@@ -90,7 +90,7 @@ femme <- femme %>% rename(birth_2y = mn1,
                           birth_assist_other = mn3x,
                           birth_assist_noone = mn3y
                           ) %>%
-        select(-mn3, -mn3nr, -mn3_autre) %>%
+        select(-mn3) %>%
         mutate(birth_2y = case_when(
                                 birth_2y == 'Oui' ~ TRUE,
                                 TRUE ~ FALSE
@@ -176,8 +176,7 @@ femme <- femme %>% rename(ster_f_ster = cp1a,
                                         "Yes, after explanation",
                                         "No",
                                         "No response"))
-                  )%>%
-        rename(ster_other = cp1_autre)
+                  )
 
 # Sterilization where knowledge #################################################
 
@@ -196,14 +195,11 @@ femme <- femme %>% rename(ster_place_hosp_pu = cp4a,
                           ster_place_reli = cp4o,
                           ster_place_close = cp4p
                           ) %>%
-        select(-cp4, -cp4f, -cp4m, -cp4x, -cp4nr) %>%
+        select(-cp4, -cp4f, -cp4m, -cp4x) %>%
         mutate_at(.vars=vars(starts_with("ster_place")),
                   ~ifelse(grepl('[A-Z]', .), TRUE, NA)
         ) %>%
         rename(ster_place_know = cp3,
-               ster_place_other_pu = cp4f_autre,
-               ster_place_other_pr = cp4m_autre,
-               ster_place_other = cp4_autre
                ) %>%
         mutate(ster_place_know = case_when(
                 ster_place_know == 'Oui' ~ TRUE,
@@ -228,12 +224,11 @@ femme <- femme %>% rename(ster_used_f_ster = cp6a,
                           ster_used_amen = cp6k,
                           ster_used_rhyt = cp6l,
                           ster_used_with = cp6m) %>%
-        select(-cp6, -cp6x, -cp6nr) %>%
+        select(-cp6, -cp6x) %>%
         mutate_at(.vars=vars(starts_with("ster_used")),
                   ~ifelse(grepl('[A-Z]', .), TRUE, NA)
                 ) %>%
-        rename(ster_used = cp5,
-                       ster_used_other = cp6_autre) %>%
+        rename(ster_used = cp5) %>%
         mutate(ster_used = case_when(
                 ster_used == 'Oui' ~ TRUE,
                 ster_used == 'Non' ~ FALSE,
@@ -256,12 +251,11 @@ femme <- femme %>% rename(ster_using_f_ster = cp10a,
                           ster_using_amen = cp10k,
                           ster_using_rhyt = cp10l,
                           ster_using_with = cp10m) %>%
-        select(-cp10, -cp10x, -cp10nr) %>%
+        select(-cp10, -cp10x) %>%
         mutate_at(.vars=vars(starts_with("ster_using")),
                   ~ifelse(grepl('[A-Z]', .), TRUE, NA)
         ) %>%
-        rename(ster_using = cp9,
-               ster_using_other = cp10_autre) %>%
+        rename(ster_using = cp9) %>%
         mutate(ster_used = case_when(
                 ster_used == 'Oui' ~ TRUE,
                 ster_used == 'Non' ~ FALSE,
@@ -278,8 +272,7 @@ femme <- femme %>% rename(ster_using_f_ster = cp10a,
 
 # Sterilization why not ########################################################
 
-femme <-femme %>% rename(ster_whynot = cp11,
-                 ster_whynot_other = cp11_autre) %>%
+femme <-femme %>% rename(ster_whynot = cp11) %>%
         mutate(
                 ster_whynot = fct_recode(ster_whynot,
                                  'Non married' = 'NON MARIÉE',
@@ -341,13 +334,10 @@ femme <- femme %>% rename(ster_modern_using = cp12,
                 TRUE ~ NA
                 )
         ) %>% 
-        select(-cp13, -cp13f, -cp13m, -cp13x, -cp13nr) %>%
+        select(-cp13, -cp13f, -cp13m, -cp13x) %>%
         mutate_at(.vars=vars(starts_with("ster_get")),
                   ~ifelse(grepl('[A-Z]', .), TRUE, NA)
-        ) %>%
-        rename(ster_get_other_pu = cp13f_autre,
-               ster_get_other_pi = cp13m_autre,
-               ster_get_other = cp13_autre)
+        ) 
 
 
 # Last questions ########################################################
@@ -355,7 +345,6 @@ femme <- femme %>% rename(ster_modern_using = cp12,
 femme <- femme %>% rename(ster_npreg_nster = cp14,
                           ster_future = cp15,
                           ster_whynot_future = cp16,
-                          ster_whynot_future_other = cp16_autre,
                           ster_wanted_childs = un1) %>%
         mutate(ster_npreg_nster = case_when(
                 ster_npreg_nster == 'Oui' ~ TRUE,

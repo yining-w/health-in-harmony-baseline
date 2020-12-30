@@ -33,81 +33,83 @@ menage <- menage %>% select(c(-hh3, -hh2, -hh6, -hh6a,
 menage <- menage %>% select(-contains(c("autre", "nr")),-ws6, -st4, -uf3, -fs6a, -fs5b, -tn18b)
   
 ##Rename Administrative info
-menage <- menage %>% rename(village_code = hh1,
-                            village_name = hh1a,
-                            reserve_section = hhstrate,
-                            permission = hh12,
-                            completeness= hh46,
-                            household_members= hh48,
-                            women15T49 = hh49,
-                            children_U5 = hh51,
-                            women15T49_c = hh53,
-                            children_U5_c = hh55)
+detach("package:plyr", unload=TRUE)
+
+menage <- menage %>% rename(hh_village_code = hh1,
+                            hh_village_name = hh1a,
+                            hh_reserve_section = hhstrate,
+                            hh_permission = hh12,
+                            hh_completeness= hh46,
+                            hh_household_members= hh48,
+                            hh_women15T49 = hh49,
+                            hh_children_U5 = hh51,
+                            hh_women15T49_c = hh53,
+                            hh_children_U5_c = hh55)
 
 
 ## Change Completeness
-menage <- menage %>% mutate(completeness = ifelse(completeness == "Completé", 1, 0))
-menage <- menage %>% mutate(permission = ifelse(permission == "OUI", 1, 0))
+menage <- menage %>% mutate(hh_completeness = ifelse(hh_completeness == "Completé", 1, 0))
+menage <- menage %>% mutate(hh_permission = ifelse(hh_permission == "OUI", 1, 0))
 
 ##Rename vars
-menage <- menage %>% rename(cat_material_floor = hc1,
-                            cat_material_roof = hc2,
-                            cat_material_wall = hc3,
-                            cat_material_stove = hc4a,
-                            cat_material_stove_fuel = hc4b,
-                            cat_cook_location = hc5,
-                            bool_owns_cellphone = hc6a,
-                            bool_owns_show = hc6b,
-                            bool_owns_bicycle = hc6c,
-                            bool_owns_motorcycle = hc6d,
-                            bool_owns_boat = hc6e,
-                            bool_owns_net = hc6f,
-                            bool_owns_animal = hc6g,
-                            bool_owns_truck = hc6h,
-                            bool_owns_motorboat = hc6i,
-                            bool_owns_plow = hc6j,
-                            bool_owns_sewingmachine =hc6k,
-                            bool_owns_tractor = hc6l,
-                            bool_has_electricity = hc7,
-                            bool_owns_land = hc8,
-                            cat_titled_land = hc9,
-                            numeric_hectare_owned = hc10,
-                            numeric_pct_agr = hc11,
-                            bool_grows_irrigated_rice = hc12a,
-                            bool_grows_rainfed_rice = hc12b,
-                            bool_grows_cassava_rice = hc12c,
-                            bool_grows_potato_rice = hc12d,
-                            bool_grows_cashcrop = hc12e,
-                            bool_grows_other = hc12x,
-                            bool_grows_traditional_rice = hc13,
-                            bool_grows_traditional_irrigated = hc14a,
-                            bool_grows_traditional_rainbed = hc14b,
-                            numeric_months_production_irrigated = hc15a,
-                            numeric_months_production_rainfed = hc15b,
-                            bool_slash = hc16,
-                            numeric_cows = hc20a,
-                            numeric_zebus = hc20b,
-                            numeric_goats = hc20c,
-                            numeric_sheep = hc20d,
-                            numeric_chickens = hc20e,
-                            numeric_pigs = hc20f,
-                            numeric_poultry = hc20g,
-                            numeric_other = hc20x,
-                            bool_owns_shoes = hc21,
-                            bool_owns_landline = hc22a,
-                            bool_owns_radio = hc22b,
-                            bool_owns_table = hc22c,
-                            bool_owns_chair = hc22d,
-                            bool_owns_reads = hc22e,
-                            bool_owns_sofa = hc22f,
-                            bool_owns_tv = hc22g,
-                            bool_owns_cdplayer = hc22h,
-                            numeric_rooms = hc23,
-                            bool_owns_tablet = hc24,
-                            bool_has_internet = hc26,
-                            bool_has_bankaccount = hc27,
-                            cat_main_income = hc28,
-                            numeric_total_income = hc29,
+menage <- menage %>% rename(cat_house_material_floor = hc1,
+                            cat_house_material_roof = hc2,
+                            cat_house_material_wall = hc3,
+                            cat_house_material_stove = hc4a,
+                            cat_house_material_stove_fuel = hc4b,
+                            cat_house_cook_location = hc5,
+                            bool_house_owns_cellphone = hc6a,
+                            bool_house_owns_show = hc6b,
+                            bool_house_owns_bicycle = hc6c,
+                            bool_house_owns_motorcycle = hc6d,
+                            bool_house_owns_boat = hc6e,
+                            bool_house_owns_net = hc6f,
+                            bool_house_owns_animal = hc6g,
+                            bool_house_owns_truck = hc6h,
+                            bool_house_owns_motorboat = hc6i,
+                            bool_house_owns_plow = hc6j,
+                            bool_house_owns_sewingmachine =hc6k,
+                            bool_house_owns_tractor = hc6l,
+                            bool_house_has_electricity = hc7,
+                            bool_house_owns_land = hc8,
+                            cat_house_titled_land = hc9,
+                            numeric_house_hectare_owned = hc10,
+                            numeric_house_pct_agr = hc11,
+                            bool_house_grows_irrigated_rice = hc12a,
+                            bool_house_grows_rainfed_rice = hc12b,
+                            bool_house_grows_cassava_rice = hc12c,
+                            bool_house_grows_potato_rice = hc12d,
+                            bool_house_grows_cashcrop = hc12e,
+                            bool_house_grows_other = hc12x,
+                            bool_house_grows_traditional_rice = hc13,
+                            bool_house_grows_traditional_irrigated = hc14a,
+                            bool_house_grows_traditional_rainbed = hc14b,
+                            numeric_house_months_production_irrigated = hc15a,
+                            numeric_house_months_production_rainfed = hc15b,
+                            bool_house_slash = hc16,
+                            numeric_house_cows = hc20a,
+                            numeric_house_zebus = hc20b,
+                            numeric_house_goats = hc20c,
+                            numeric_house_sheep = hc20d,
+                            numeric_house_chickens = hc20e,
+                            numeric_house_pigs = hc20f,
+                            numeric_house_poultry = hc20g,
+                            numeric_house_other = hc20x,
+                            bool_house_owns_shoes = hc21,
+                            bool_house_owns_landline = hc22a,
+                            bool_house_owns_radio = hc22b,
+                            bool_house_owns_table = hc22c,
+                            bool_house_owns_chair = hc22d,
+                            bool_house_owns_reads = hc22e,
+                            bool_house_owns_sofa = hc22f,
+                            bool_house_owns_tv = hc22g,
+                            bool_house_owns_cdplayer = hc22h,
+                            numeric_house_rooms = hc23,
+                            bool_house_owns_tablet = hc24,
+                            bool_house_has_internet = hc26,
+                            bool_house_has_bankaccount = hc27,
+                            cat_house_main_income = hc28,
+                            numeric_house_total_income = hc29,
                             cat_water_drinking = ws1,
                             cat_water_other = ws2,
                             cat_water_location = ws3,
@@ -298,86 +300,86 @@ menage = menage %>% mutate_at(.vars=vars(starts_with("alpha_")),
                                           ~ifelse(grepl('', .), 0, 1))
 
 menage = menage %>% mutate_at(.vars=vars(starts_with("alt_")),
-                              ~ifelse(grepl('SOINS', .), "CARE", "EAT"))
+                              ~ifelse(grepl('SOINS', .), 1, 0))
 
 ##count unique
 ##create factors for categorical
 menage = menage %>%
-  mutate(cat_material_floor = as.character(cat_material_floor),
-         cat_material_floor = case_when(cat_material_floor == 'NATTE' ~ "MAT",
-                                        cat_material_floor == 'PALME / BAMBOU' ~ "Palm or Bamboo",
-                                        cat_material_floor == 'PLANCHES DE BOIS' ~ "wood planks",
-                                        cat_material_floor == 'BANDES DE VINYLE OU D?ASPHALTE' ~ "Vinyl or strips",
-                                        cat_material_floor == "BOUSE" ~ "Dung",
-                                        cat_material_floor == "CARRELAGE EN CERAMIQUE" ~ "Ceramic Tile",
-                                        cat_material_floor == "CIMENT" ~ "Cement",
-                                        cat_material_floor == "MOQUETTE / TAPIS" ~ "Carpet or Rugs",
-                                        cat_material_floor == 'PARQUET EN BOIS OU BOIS POLI' ~ 'Polished Wood or Wood Parquet',
-                                        cat_material_floor == "TERRE / SABLE" ~ 'Earth or Sand'),
-         cat_material_roof = as.character(cat_material_roof),
-         cat_material_roof = case_when(cat_material_roof == 'CHAUME / FEUILLE DE PALME' ~ 'Palm Leaf',
-                                       cat_material_roof == "MOTTES D'HERBES" ~ "Clumps of grass",
-                                       cat_material_roof == "NATTE" ~ "MAT",
-                                       cat_material_roof == "PALMIER / BAMBOU / ZOZORO" ~ "Palm or Bamboo",
-                                       cat_material_roof == 'PAS DE TOIT' ~ "no roof",
-                                       cat_material_roof == 'PLANCHES EN BOIS' ~ 'wood planks',
-                                       cat_material_roof == 'TOLE / METAL / ALUMINIUM' ~ 'Sheet Metal or Aluminium'),
-         cat_material_wall = as.character(cat_material_wall),
-         cat_material_wall = case_when(cat_material_wall == 'ADOBE NON RECOUVERT/BANCO' ~ 'Uncovered',
-                                       cat_material_wall == 'AUTRE' ~ 'Other',
-                                       cat_material_wall == 'BOUE'~ 'Mud',
-                                       cat_material_wall == 'CANE / PALME / TRONCS / ZOZORO' ~ 'Cane or Palm or Trunks or Zozoro',
-                                       cat_material_wall == 'CONTRE PLAQUE' ~ 'Plywood',
-                                       cat_material_wall == 'PAS DE MURS' ~ 'No Walls',
-                                       cat_material_wall == 'PLANCHES DE BOIS/BARDEAUX' ~ 'wood planks'),
-         cat_material_stove == as.character(cat_material_stove),
-         cat_material_stove == case_when(cat_material_stove == 'CUISINIERE A COMBUSTIBLE SOLIDE' ~ 'solid fuel stove',
-                                         cat_material_stove == 'CUISINIERE TRADITIONNELLE A COMBUSTIBLE SOLIDE' ~'traditional solid fuel stove',
-                                         cat_material_stove == 'CUISINIERE A GAZ LIQUIDE (GPL)' ~ 'liquid gas stove',
-                                         cat_material_stove == 'CUISINIERE SOLAIRE' ~ 'SOLAR COOKER',
-                                         cat_material_stove == 'CUISINIERE A COMBUSTIBLE LIQUIDE' ~ 'liquid fuel cooker',
-                                         cat_material_stove == 'FEU SUR TROIS PIERRES / FEU OUVERT' ~ 'Open Fire',
-                                         cat_material_stove == 'PAS DE REPAS PRÉPARÉ DANS MENAGE' ~ 'No meal prepared'),
-         cat_material_stove_fuel == as.character(cat_material_stove_fuel),
-         cat_material_stove_fuel == case_when(cat_material_stove_fuel == 'ALCOOL / ETHANOL' ~ 'Alcohol or Ethanol',
-                                              cat_material_stove_fuel == 'BOIS' ~ 'Wood',
-                                              cat_material_stove_fuel == 'BOUSE D?ANIMAUX / DECHETS' ~ 'Animal Waste',
-                                              cat_material_stove_fuel == 'CHARBON DE BOIS' ~ 'Charcoal',
-                                              cat_material_stove_fuel == 'ESSENCE / DIESEL' ~ 'Diesel gas',
-                                              cat_material_stove_fuel == 'PETROLE / PARAFFINE' ~ 'Petroleum or Paraffin',
-                                              cat_material_stove_fuel == 'BIOMASS MANUFACTUREE (GRANULES) OU COPEAUX DE BOIS' ~ 'Manufactured Biomass or Wood chips',
-                                              cat_material_stove_fuel == 'RESIDUS AGRICOLES / HERBES/ PAILLES/ ARBUSTES' ~ 'Agricultural Residue'),
-         cat_cook_location == as.character(cat_cook_location),
-         cat_cook_location == case_when(cat_cook_location == 'DANS UN BATIMENT SEPARE' ~ 'separate building',
-                                        cat_cook_location == 'DANS LA MAISON PRINCIPALE : DANS UNE PIECE NON SEPAREE' ~ 'main house- nonseparate room',
-                                        cat_cook_location == 'DANS LA MAISON PRINCIPALE : DANS UNE PIECE SEPARE' ~ 'main house-separate room',
-                                        cat_cook_location == 'DEHORS : A LAIR LIBRE' ~ 'Outside in the air',
-                                        cat_cook_location == 'DEHORS : SUR UNE VERANDA OU UN PORCHE COUVERT' ~ 'Outside on a veranda or covered porch'),
-         cat_titled_land == as.character(cat_titled_land),
-         cat_titled_land == case_when(cat_titled_land == 'AUCUN TITREES' ~ 'No titles',
-                                      cat_titled_land == 'NON REPONSE' ~ 'No response',
-                                      cat_titled_land == 'PARTIELLEMENT TITREES' ~ 'Partially titled',
-                                      cat_titled_land == 'TOUS TITREES' ~ 'Fully titled'),
-         cat_main_income == as.character(cat_main_income),
-         cat_main_income == case_when(cat_main_income == 'AUTRE' ~ 'Other',
-                                      cat_main_income == 'EMPLOYÉ  (GOUVERNEMENT, ONG, AUTRE?)' ~ 'Employed (government, ngo, others)',
-                                      cat_main_income == 'PAS DE REVENU' ~ 'No income',
-                                      cat_main_income == "PROPRIÉTAIRE D'UNE PETITE ENTREPRISE" ~ "Small Business Owner",
-                                      cat_main_income == 'VENDRE DU MIEL' ~ "Sell honey",
-                                      cat_main_income == "VENTE D'ARTISANAT" ~ "Sell crafts",
-                                      cat_main_income == 'VENTE DE BOIS' ~ 'Sell wood',
-                                      cat_main_income == "VENTE D'AUTRES PRODUITS FORESTIERS" ~ "Sell other forest products",
-                                      cat_main_income == "VENTE DE BOIS DE CHAUFFAGE" ~ "Sell firewood",
-                                      cat_main_income == "VENTE DE CHARBON DEBOIS" ~ "Sell charcoal",
-                                      cat_main_income == "VENTE DE POISSON" ~ "Sell fish",
-                                      cat_main_income == 'VENTE DE RAVINALA / CHAUME' ~ "Sell ravinala or thatch",
-                                      cat_main_income == "VENTE DE PRODUITS AGRICOLES (MANIOC, TUBERCULES, PAR EXEMPLE)" ~ "Sell agricultural products",
-                                      cat_main_income == "VENTE DE CULTURES DE RENTE (CAFÉ, VANILLE, CLOU DE GIROFLE, PAR EXEMPLE)" ~ "Sell crops",
-                                      cat_main_income == "VENTE DE PLATS PRÉPARÉS  (PLATS FRITS / GÂTEAUX DE POISSON PAR EXEMPLE)" ~ "Sell prepared meals"),
-         cat_water_drinking == as.character(cat_water_drinking),
-         cat_water_drinking == case_when(cat_water_drinking == 'SOURCE: SOURCE NON PROTEGEE' ~ "unprotected source",
-                                         cat_water_drinking == 'SOURCE: SOURCE PROTEGEE' ~ 'protected source'
-                                         cat_water_drinking == 'EAU DE SURFACE (RIVIERE, BARRAGE, LAC, MARE, COURANT, CANAL, SYSTEME D?IRRIGATION)' ~ 'Surface water',
+  mutate(cat_house_material_floor = case_when(cat_house_material_floor == 'NATTE' ~ "MAT",
+                                        cat_house_material_floor == 'PALME / BAMBOU' ~ "Palm or Bamboo",
+                                        cat_house_material_floor == 'PLANCHES DE BOIS' ~ "wood planks",
+                                        cat_house_material_floor == 'BANDES DE VINYLE OU D?ASPHALTE' ~ "Vinyl or strips",
+                                        cat_house_material_floor == "BOUSE" ~ "Dung",
+                                        cat_house_material_floor == "CARRELAGE EN CERAMIQUE" ~ "Ceramic Tile",
+                                        cat_house_material_floor == "CIMENT" ~ "Cement",
+                                        cat_house_material_floor == "MOQUETTE / TAPIS" ~ "Carpet or Rugs",
+                                        cat_house_material_floor == 'PARQUET EN BOIS OU BOIS POLI' ~ 'Polished Wood or Wood Parquet',
+                                        cat_house_material_floor == "TERRE / SABLE" ~ 'Earth or Sand'))
+menage = menage %>% 
+  mutate(cat_house_material_roof = case_when(cat_house_material_roof == 'CHAUME / FEUILLE DE PALME' ~ 'Palm Leaf',
+                                       cat_house_material_roof == "MOTTES D'HERBES" ~ "Clumps of grass",
+                                       cat_house_material_roof == "NATTE" ~ "MAT",
+                                       cat_house_material_roof == "PALMIER / BAMBOU / ZOZORO" ~ "Palm or Bamboo",
+                                       cat_house_material_roof == 'PAS DE TOIT' ~ "no roof",
+                                       cat_house_material_roof == 'PLANCHES EN BOIS' ~ 'wood planks',
+                                       cat_house_material_roof == 'TOLE / METAL / ALUMINIUM' ~ 'Sheet Metal or Aluminium'))
+menage = menage %>% 
+  mutate(cat_house_material_wall = case_when(cat_house_material_wall == 'ADOBE NON RECOUVERT/BANCO' ~ 'Uncovered',
+                                       cat_house_material_wall == 'AUTRE' ~ 'Other',
+                                       cat_house_material_wall == 'BOUE'~ 'Mud',
+                                       cat_house_material_wall == 'CANE / PALME / TRONCS / ZOZORO' ~ 'Cane or Palm or Trunks or Zozoro',
+                                       cat_house_material_wall == 'CONTRE PLAQUE' ~ 'Plywood',
+                                       cat_house_material_wall == 'PAS DE MURS' ~ 'No Walls',
+                                       cat_house_material_wall == 'PLANCHES DE BOIS/BARDEAUX' ~ 'wood planks'))
+menage = menage %>% 
+  mutate(cat_house_material_stove = case_when(cat_house_material_stove == 'CUISINIERE A COMBUSTIBLE SOLIDE' ~ 'solid fuel stove',
+                                         cat_house_material_stove == 'CUISINIERE TRADITIONNELLE A COMBUSTIBLE SOLIDE' ~'traditional solid fuel stove',
+                                         cat_house_material_stove == 'CUISINIERE A GAZ LIQUIDE (GPL)' ~ 'liquid gas stove',
+                                         cat_house_material_stove == 'CUISINIERE SOLAIRE' ~ 'SOLAR COOKER',
+                                         cat_house_material_stove == 'CUISINIERE A COMBUSTIBLE LIQUIDE' ~ 'liquid fuel cooker',
+                                         cat_house_material_stove == 'FEU SUR TROIS PIERRES / FEU OUVERT' ~ 'Open Fire',
+                                         cat_house_material_stove == 'PAS DE REPAS PRÉPARÉ DANS MENAGE' ~ 'No meal prepared'))
+menage = menage %>% 
+  mutate(cat_house_material_stove_fuel = case_when(cat_house_material_stove_fuel == 'ALCOOL / ETHANOL' ~ 'Alcohol or Ethanol',
+                                              cat_house_material_stove_fuel == 'BOIS' ~ 'Wood',
+                                              cat_house_material_stove_fuel == 'BOUSE D?ANIMAUX / DECHETS' ~ 'Animal Waste',
+                                              cat_house_material_stove_fuel == 'CHARBON DE BOIS' ~ 'Charcoal',
+                                              cat_house_material_stove_fuel == 'ESSENCE / DIESEL' ~ 'Diesel gas',
+                                              cat_house_material_stove_fuel == 'PETROLE / PARAFFINE' ~ 'Petroleum or Paraffin',
+                                              cat_house_material_stove_fuel == 'BIOMASS MANUFACTUREE (GRANULES) OU COPEAUX DE BOIS' ~ 'Manufactured Biomass or Wood chips',
+                                              cat_house_material_stove_fuel == 'RESIDUS AGRICOLES / HERBES/ PAILLES/ ARBUSTES' ~ 'Agricultural Residue'))
+menage = menage %>% 
+  mutate(cat_house_cook_location = case_when(cat_house_cook_location == 'DANS UN BATIMENT SEPARE' ~ 'separate building',
+                                        cat_house_cook_location == 'DANS LA MAISON PRINCIPALE : DANS UNE PIECE NON SEPAREE' ~ 'main house- nonseparate room',
+                                        cat_house_cook_location == 'DANS LA MAISON PRINCIPALE : DANS UNE PIECE SEPARE' ~ 'main house-separate room',
+                                        cat_house_cook_location == 'DEHORS : A LAIR LIBRE' ~ 'Outside in the air',
+                                        cat_house_cook_location == 'DEHORS : SUR UNE VERANDA OU UN PORCHE COUVERT' ~ 'Outside on a veranda or covered porch'))
+menage = menage %>% 
+  mutate(cat_house_titled_land = case_when(cat_house_titled_land == 'AUCUN TITREES' ~ 'No titles',
+                                      cat_house_titled_land == 'NON REPONSE' ~ 'No response',
+                                      cat_house_titled_land == 'PARTIELLEMENT TITREES' ~ 'Partially titled',
+                                      cat_house_titled_land == 'TOUS TITREES' ~ 'Fully titled'))
+menage = menage %>% 
+  mutate(cat_house_main_income = case_when(cat_house_main_income == 'AUTRE' ~ 'Other',
+                                      cat_house_main_income == 'EMPLOYÉ  (GOUVERNEMENT, ONG, AUTRE?)' ~ 'Employed (government, ngo, others)',
+                                      cat_house_main_income == 'PAS DE REVENU' ~ 'No income',
+                                      cat_house_main_income == "PROPRIÉTAIRE D'UNE PETITE ENTREPRISE" ~ "Small Business Owner",
+                                      cat_house_main_income == 'VENDRE DU MIEL' ~ "Sell honey",
+                                      cat_house_main_income == "VENTE D'ARTISANAT" ~ "Sell crafts",
+                                      cat_house_main_income == 'VENTE DE BOIS' ~ 'Sell wood',
+                                      cat_house_main_income == "VENTE D'AUTRES PRODUITS FORESTIERS" ~ "Sell other forest products",
+                                      cat_house_main_income == "VENTE DE BOIS DE CHAUFFAGE" ~ "Sell firewood",
+                                      cat_house_main_income == "VENTE DE CHARBON DEBOIS" ~ "Sell charcoal",
+                                      cat_house_main_income == "VENTE DE POISSON" ~ "Sell fish",
+                                      cat_house_main_income == 'VENTE DE RAVINALA / CHAUME' ~ "Sell ravinala or thatch",
+                                      cat_house_main_income == "VENTE DE PRODUITS AGRICOLES (MANIOC, TUBERCULES, PAR EXEMPLE)" ~ "Sell agricultural products",
+                                      cat_house_main_income == "VENTE DE CULTURES DE RENTE (CAFÉ, VANILLE, CLOU DE GIROFLE, PAR EXEMPLE)" ~ "Sell crops",
+                                      cat_house_main_income == "VENTE DE PLATS PRÉPARÉS  (PLATS FRITS / GÂTEAUX DE POISSON PAR EXEMPLE)" ~ "Sell prepared meals"))
+
+menage = menage %>% 
+  mutate(cat_water_drinking = case_when(cat_water_drinking == 'SOURCE: SOURCE NON PROTEGEE' ~ "unprotected source",
+                                         cat_water_drinking == 'SOURCE: SOURCE PROTEGEE' ~ 'protected source',
+                                         cat_water_drinking == "EAU DE SURFACE (RIVIERE, BARRAGE, LAC, MARE, COURANT, CANAL, SYSTEME D?IRRIGATION)" ~ 'Surface water',
                                          cat_water_drinking == 'PUITS CREUSE: PAS PROTEGE' ~ 'Protected hollow well',
                                          cat_water_drinking == 'PUITS CREUSE: PAS PROTEGE' ~ 'Unprotected hollow well',
                                          cat_water_drinking == 'EAU CONDITIONNEE: EAU EN BOUTEILLE' ~ 'Conditioned bottled water',
@@ -385,37 +387,79 @@ menage = menage %>%
                                          cat_water_drinking == 'ROBINET: DANS LA CONCESSION/JARDIN/ PARCELLE' ~ 'Tap in the garden',
                                          cat_water_drinking == 'ROBINET: DANS LE LOGEMENT' ~ 'Tap in the housing',
                                          cat_water_drinking == 'ROBINET: ROBINET PUBLIC/BORNE FONTAINE' ~ 'Public tap or fountain terminal',
-                                         cat_water_drinking == 'PUITS A POMPE/FORAGE' ~ 'Pump or drilling wells'),
-         cat_water_other == as.character(cat_water_other),
-         cat_water_other == case_when(cat_water_other == 'SOURCE: SOURCE NON PROTEGEE' ~ 'unprotected source'),
-         cat_water_location == as.character(cat_water_location),
-         cat_water_location == case_when(cat_water_location == 'AILLEURS' ~ 'Elsewhere',
+                                         cat_water_drinking == 'PUITS A POMPE/FORAGE' ~ 'Pump or drilling wells'))
+
+menage = menage %>% 
+  mutate(cat_water_other = case_when(cat_water_other == 'SOURCE: SOURCE NON PROTEGEE' ~ 'unprotected source'),
+         cat_water_location = case_when(cat_water_location == 'AILLEURS' ~ 'Elsewhere',
                                          cat_water_location == 'DANS LEUR LOGEMENT' ~ 'In their accommodation',
-                                         cat_water_location == 'DANS LEUR JARDIN/PARCELLE' ~ 'In the garden'),
-         cat_toilet_type == as.character(cat_toilet_type),
-         cat_toilet_type == case_when(cat_toilet_type == 'PAS DE TOILETTES/ NATURE/CHAMPS',
+                                         cat_water_location == 'DANS LEUR JARDIN/PARCELLE' ~ 'In the garden'))
+menage = menage %>% 
+  mutate(cat_toilet_type = case_when(cat_toilet_type == 'PAS DE TOILETTES/ NATURE/CHAMPS' ~ "Nature",
                                       cat_toilet_type == 'LATRINE A FOSSE : LATRINE A FOSSE SANS DALLE/FOSSE OUVERTE' ~ 'Open pit',
                                       cat_toilet_type == 'LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE NON LAVABLE' ~ 'non washable slab',
                                       cat_toilet_type == 'LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE LAVABLE' ~ 'washable slab',
                                       cat_toilet_type == 'AUTRE' ~ 'Other',
                                       cat_toilet_type == 'TOILETTES SUSPENDUES/LATRINES SUSPENDUES' ~ 'Suspended toilets',
                                       cat_toilet_type == 'CHASSE D?EAU : RELIE AUX LATRINES' ~ 'Water flush connected to latrines',
-                                      cat_toilet_type =="CHASSE D?EAU : RELIE A L'AIR LIBRE" ~ 'Water flush connected to free air'),
-         cat_forest_cut == as.character(cat_forest_cut),
-         cat_forest_cut == case_when(cat_forest_cut == "BOIS DE CONSTRUCTION" ~ "Construction wood",
+                                      cat_toilet_type =="CHASSE D?EAU : RELIE A L'AIR LIBRE" ~ 'Water flush connected to free air'))
+
+menage = menage %>% 
+  mutate(cat_forest_cut = case_when(cat_forest_cut == "BOIS DE CONSTRUCTION" ~ "Construction wood",
                                      cat_forest_cut == "AUTRE" ~ "Other",
                                      cat_forest_cut == "CONSTRUCTION DE PIROGUE" ~ "Pirogue Construction"),
-         cat_forest_honey_method == as.character(cat_forest_honey_method),
-         cat_forest_honey_method == case_when(cat_forest_other_honey_method == "EN ENFUMANT LES ABEILLES" ~ "Smoking the bees",
+         cat_forest_honey_method = case_when(cat_forest_other_honey_method == "EN ENFUMANT LES ABEILLES" ~ "Smoking the bees",
                                               cat_forest_other_honey_method == "EN RECOLTANT SIMPLEMENT DANS L'ARBRE" ~ "Harvesting from trees"),
-         cat_forest_other_cut == as.character(cat_forest_other_cut),
-         cat_forest_other_cut == case_when(cat_forest_other_cut == "BOIS DE CONSTRUCTION" ~ "Construction Wood",
+         cat_forest_other_cut = case_when(cat_forest_other_cut == "BOIS DE CONSTRUCTION" ~ "Construction Wood",
                                            cat_forest_other_cut == "CHARBON DE BOIS" ~ "Charcoal",
                                            cat_forest_other_cut == "BOIS DE CHAUFFAGE" ~ "Firewood",
                                            cat_forest_other_cut == "CONSTRUCTION DE PIROGUE" ~ "Pirogue construction"),
-         cat_forest_other_honey_method == as.character(cat_forest_other_honey_method),
-         cat_forest_other_honey_method == case_when(cat_forest_other_honey_method == "EN ENFUMANT LES ABEILLES" ~ "Smoking the bees",
+         cat_forest_other_honey_method = case_when(cat_forest_other_honey_method == "EN ENFUMANT LES ABEILLES" ~ "Smoking the bees",
                                                     cat_forest_other_honey_method == "EN RECOLTANT SIMPLEMENT DANS L'ARBRE" ~ "Harvesting from trees"))
 ## Make numeric
 menage[] <- lapply(menage, type.convert, as.is = TRUE)
-sapply(menage, class)
+
+## Reshape categoricals
+#menage_cat <- menage %>% select(contains(c("cat_")), village_code)
+
+#rawdata<-unite(menage_cat, timevar, cat_forest_cut, cat_forest_honey_method, cat_material_floor,
+#               cat_material_roof, cat_material_wall, cat_material_stove, cat_material_stove_fuel,
+#               cat_cook_location, cat_titled_land, cat_main_income, cat_water_drinking, 
+#               cat_water_other, cat_water_location, cat_toilet_type, cat_forest_cut, 
+#               cat_forest_honey_method, cat_forest_other_honey_method, cat_forest_closest)
+
+
+#menage_cat <- reshape(rawdata, direction = "wide", idvar="village_code",timevar = "timevar")
+
+#menage_cat = reshape(menage_cat, idvar = "village_code", timevar=cat_, direction = "wide")
+
+##aggregate 
+menage <- menage %>% select(-contains(c("cat_")))
+
+#find the mean of numeric columns
+menage_num = menage %>% select(c(contains("numeric")), "hh_village_code", "hh_reserve_section")
+menage_num = menage_num %>% group_by(hh_reserve_section, hh_village_code) %>%
+  summarize_if(is.numeric, mean, na.rm=TRUE)
+
+#find the sum of booleans
+menage_bools = menage %>% select(c(contains("bool")), "hh_village_code", "hh_reserve_section")
+menage_bools = menage_bools %>% group_by(hh_reserve_section, hh_village_code) %>%
+  summarise_all(sum, na.rm=TRUE)
+
+#combine 
+summary_menage = merge(menage_num, menage_bools, by = c("hh_village_code", "hh_reserve_section"))
+
+##Reshape to long
+summary_menage <- pivot_longer(summary_menage, cols=3:221, names_to = "Question", values_to = "Value")
+
+##Make Topics
+summary_menage <- summary_menage %>% mutate(survey = "Menage")
+summary_menage <- summary_menage %>% mutate(topic = case_when(grepl("mosq", Question) ~ "Possession and Use of Mosquito Nets",
+                                                                          grepl("health", Question) ~"Health Care and Treatment",
+                                                                          grepl("house", Question) ~ "Housing Characteristics",
+                                                              grepl("food", Question) ~ "Food Security",
+                                                              grepl("forest", Question) ~ "Forest Use",
+                                                              grepl("water", Question) ~ "Water and Sanitation"))
+
+
+write.csv(summary_menage, "menage_survey.csv") 

@@ -80,18 +80,18 @@ moustiquaire$numeric_mosq_net_number <- as.numeric(as.character(moustiquaire$num
 
 #Adding the number of members of the household
 load(here("Baseline_Survey/data/MENAGE.RData"))
-menage <- menage %>% select(village_code = hh1,
-                            household_number = hh2,
-                            household_members = hh48)
+menage <- menage %>% select(hh_village_code = hh1,
+                            hh_household_number = hh2,
+                            hh_household_members = hh48)
 moustiquaire = moustiquaire %>% left_join(menage, 
-                                          by = c("village_code",
-                                                 "household_number"))
+                                          by = c("hh_village_code",
+                                                 "hh_household_number"))
 
 #Adding household education
 load(here("Baseline_Survey/data/TABLEAU_DE_MENAGE.RData"))
 tableau_de_menage <- tableau_de_menage %>% filter(hl1 == 1) %>%
-        select(village_code = hh1,
-               household_number = hh2,
+        select(hh_village_code = hh1,
+               hh_household_number = hh2,
                head_education = hl10,
                head_education_level = hl11a) %>%
         mutate(head_education_level = case_when(
@@ -107,8 +107,8 @@ tableau_de_menage <- tableau_de_menage %>% filter(hl1 == 1) %>%
         select(-head_education)
 
 moustiquaire = moustiquaire %>% left_join(tableau_de_menage, 
-                                          by = c("village_code",
-                                                 "household_number"))
+                                          by = c("hh_village_code",
+                                                 "hh_household_number"))
 
 
 #Creating table who splet under #####################################################
@@ -116,8 +116,8 @@ moustiquaire = moustiquaire %>% left_join(tableau_de_menage,
 #Adding who slept under
 load(here("Baseline_Survey/data/TABLEAU_DE_MENAGE.RData"))
 sleep_with_net = tableau_de_menage %>%
-        select(village_code = hh1,
-               household_number = hh2,
+        select(hh_village_code = hh1,
+               hh_household_number = hh2,
                line_number = hl1,
                sex = hl4,
                age = hl6) %>%
@@ -141,8 +141,8 @@ sleep_with_net = tableau_de_menage %>%
 
 
 aux_moustiquaire <- moustiquaire %>%
-        select(village_code,
-               household_number,
+        select(hh_village_code,
+               hh_household_number,
                bool_mosq_net,
                cat_mosq_net_type,
                contains("tn15_")) %>%
@@ -153,8 +153,8 @@ aux_moustiquaire <- moustiquaire %>%
 
 
 sleep_with_net = sleep_with_net %>% left_join(aux_moustiquaire,
-                                              by = c("village_code",
-                                                     "household_number",
+                                              by = c("hh_village_code",
+                                                     "hh_household_number",
                                                      "line_number"))
 
 moustiquaire <- moustiquaire %>% select(-contains("tn15_"))
@@ -162,8 +162,8 @@ moustiquaire <- moustiquaire %>% select(-contains("tn15_"))
 rm(list = c("aux_moustiquaire","tableau_de_menage", "menage"))
 
 ##### Creating tables ##########################################################
-temp <- moustiquaire %>% group_by(village_code, 
-                                  household_number, 
+temp <- moustiquaire %>% group_by(hh_village_code, 
+                                  hh_household_number, 
                                   reserve_section,
                                   head_education_level,
                                   cat_mosq_net_type) %>% 
@@ -186,41 +186,40 @@ saveRDS(temp, file = here("Baseline_Survey/data/mosquito_nets.rds"))
 
 
 #change the cats ################################################################
-moustiquaire_cats = moustiquaire %>% count(reserve_section, village_code, cat_mosq_net_source, sort = TRUE)
+moustiquaire_cats = moustiquaire %>% count(hh_reserve_section, hh_village_code, cat_mosq_net_source, sort = TRUE)
 moustiquaire_cats = moustiquaire_cats %>% rename(mosq_net_source = n)
-moustiquaire_cats = reshape(moustiquaire_cats, idvar = c("reserve_section", "village_code"), timevar="cat_mosq_net_source", direction = "wide")
+moustiquaire_cats = reshape(moustiquaire_cats, idvar = c("hh_reserve_section", "hh_village_code"), timevar="cat_mosq_net_source", direction = "wide")
 
-moustiquaire_cats_two = moustiquaire %>% count(reserve_section, village_code, cat_mosq_net_type, sort = TRUE)
+moustiquaire_cats_two = moustiquaire %>% count(hh_reserve_section, hh_village_code, cat_mosq_net_type, sort = TRUE)
 moustiquaire_cats_two = moustiquaire_cats_two %>% rename(mosq_net_type = n)
-moustiquaire_cats_two = reshape(moustiquaire_cats_two, idvar = c("reserve_section", "village_code"), timevar="cat_mosq_net_type", direction = "wide")
+moustiquaire_cats_two = reshape(moustiquaire_cats_two, idvar = c("hh_reserve_section", "hh_village_code"), timevar="cat_mosq_net_type", direction = "wide")
 
-moustiquaire_cats = merge(moustiquaire_cats, moustiquaire_cats_two, by = c("village_code", "reserve_section"))
+moustiquaire_cats = merge(moustiquaire_cats, moustiquaire_cats_two, by = c("hh_village_code", "hh_reserve_section"))
 
 rm("moustiquaire_cats_two")
 
 ##aggregate bools and nums
-moustiquaire_bools = moustiquaire %>% select(c(contains("bool")), "village_code", "reserve_section")
-summary_moustiquaire = moustiquaire_bools %>% group_by(reserve_section, village_code) %>%
+moustiquaire_bools = moustiquaire %>% select(c(contains("bool")), "hh_village_code", "hh_reserve_section")
+summary_moustiquaire = moustiquaire_bools %>% group_by(hh_reserve_section, hh_village_code) %>%
         summarise_all(sum, na.rm=TRUE)
 
 moustiquaire_num = moustiquaire %>% select(c(contains("numeric")), "village_code", "reserve_section")
 moustiquaire_num = moustiquaire_num %>% group_by(reserve_section, village_code) %>%
         summarize_if(is.numeric, mean, na.rm=TRUE)
 
-summary_moustiquaire = merge(summary_moustiquaire, moustiquaire_num, by = c("village_code", "reserve_section"))
-summary_moustiquaire = merge(summary_moustiquaire, moustiquaire_cats, by= c("village_code", "reserve_section"))
+summary_moustiquaire = merge(summary_moustiquaire, moustiquaire_num, by = c("hh_village_code", "hh_reserve_section"))
+summary_moustiquaire = merge(summary_moustiquaire, moustiquaire_cats, by= c("hh_village_code", "hh_reserve_section"))
 
 #tally observations
-obs_moustiquaire = moustiquaire %>% group_by(village_code) %>% tally()
-summary_moustiquaire = merge(summary_moustiquaire, obs_moustiquaire, by='village_code')
+obs_moustiquaire = moustiquaire %>% group_by(hh_village_code) %>% tally()
+summary_moustiquaire = merge(summary_moustiquaire, obs_moustiquaire, by='hh_village_code')
 
 ## reshape to long
 summary_moustiquaire <- pivot_longer(summary_moustiquaire, cols=3:26, names_to = "Question", values_to = "Value")
 
 #Create dummy columns
-summary_moustiquaire <- summary_moustiquaire %>% mutate(survey = "test")
-summary_moustiquaire <- summary_moustiquaire %>% mutate(topic = case_when(grepl("mosq", Question) ~ "Mosquito Nets",
-                                                                          grepl("placeholder", Question) ~"Other"))
+summary_moustiquaire <- summary_moustiquaire %>% mutate(survey = "Moustiquaire")
+summary_moustiquaire <- summary_moustiquaire %>% mutate(topic = case_when(grepl("mosq", Question) ~ "Mosquito Nets"))
 
 
 ##Rename the questions
