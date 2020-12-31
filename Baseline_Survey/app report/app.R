@@ -11,11 +11,20 @@ library(shinythemes)
 library(rhandsontable)
 library(RColorBrewer)
 library(shinycssloaders)
+library(here)
 remove(list=ls())
 
 #Loading coordinates #############################################################
 library(sf)
 load(here("Baseline_Survey/data/gps.RData"))
+load(here("Baseline_Survey/preprocessing/menage_survey.csv"))
+load(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
+
+moustiquaire = read.csv("moustiquaire_survey.csv")
+moustiquaire = moustiquaire %>% select(-n)
+menage = read.csv("menage_survey.csv")
+
+survey = rbind(menage, moustiquaire)
 
 #Transform GPS data into vector data
 gps<-st_as_sf(x=gps,
@@ -24,6 +33,13 @@ gps<-st_as_sf(x=gps,
     rename(village_code = gps1,
            village_name = gps1a,
            reserve_section = gpstrate)
+
+gps = gps %>% rename(
+    hh_village_code = village_code
+)
+
+###merging lat long with survey information
+merge = menage %>% left_join(gps)
 
 #Adding population
 load(here("Baseline_Survey/data/MENAGE.RData"))
