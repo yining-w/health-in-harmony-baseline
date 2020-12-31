@@ -17,14 +17,8 @@ remove(list=ls())
 #Loading coordinates #############################################################
 library(sf)
 load(here("Baseline_Survey/data/gps.RData"))
-load(here("Baseline_Survey/preprocessing/menage_survey.csv"))
-load(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
-
-moustiquaire = read.csv("moustiquaire_survey.csv")
-moustiquaire = moustiquaire %>% select(-n)
-menage = read.csv("menage_survey.csv")
-
-survey = rbind(menage, moustiquaire)
+#load(here("Baseline_Survey/preprocessing/menage_survey.csv"))
+#load(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
 
 #Transform GPS data into vector data
 gps<-st_as_sf(x=gps,
@@ -38,9 +32,6 @@ gps = gps %>% rename(
     hh_village_code = village_code
 )
 
-###merging lat long with survey information
-merge = menage %>% left_join(gps)
-
 #Adding population
 load(here("Baseline_Survey/data/MENAGE.RData"))
 population <- menage %>% select(village_code = hh1, 
@@ -52,11 +43,13 @@ population <- menage %>% select(village_code = hh1,
 
 gps <- gps %>% left_join(population)
 
-#We also need to add all the variables that are going to be on the map
-
 #Reading Survey #################################################################
-#Here we need to add all the tables that we are going to use on the plots
-mosquito_1 <- readRDS(here("Baseline_Survey/data/mosquito_nets.rds"))
+moustiquaire = read.csv(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
+moustiquaire = moustiquaire %>% select(-n)
+menage = read.csv("Baseline_Survey/preprocessing/menage_survey.csv")
+
+#Dataset with all the data of the questions
+survey = rbind(menage, moustiquaire)
 
 #This is only temp 
 topic <- c("HOUSING CHARACTERISTICS",
@@ -225,11 +218,20 @@ ui <-navbarPage(
 # Define server ############################################################
 server <- function(input, output)  { 
     
-    #Transforming the layer to reactive
-    gps_reactive <- reactive({
-        gps %>% filter(reserve_section %in% input$stratum)
+    #Survey data reactive
+    #Gives the data filtered based on the question
+    survey_reactive <- reactive({
+        survey %>% filter(hh_server_section %in% input$stratum,
+                          topic == input$topic,
+                          question == input$question)
     })
     
+    #Transforming the layer to reactive
+    #Adds the question results to the gps dataset
+    gps_reactive <- reactive({
+        gps %>% filter(reserve_section %in% input$stratum) %>%
+            left_join(survey_reactive())
+    })
     
     output$map <- renderLeaflet({
             leaflet(gps_reactive()) %>%
