@@ -19,7 +19,7 @@ remove(list=ls())
 #load(here("Baseline_Survey/data/gps.RData"))
 #load(here("Baseline_Survey/preprocessing/menage_survey.csv"))
 #load(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
-#setwd("~/GitHub/health-in-harmony-baseline-/Baseline_Survey/preprocessing")
+setwd("~/GitHub/health-in-harmony-baseline-/Baseline_Survey/preprocessing")
 data_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/data"
 css_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/"
     
@@ -30,13 +30,6 @@ menage = read.csv("menage_survey.csv")
 
 survey = rbind(menage, moustiquaire)
 
-#Transform GPS data into vector data
-#gps<-st_as_sf(x=gps,
-#              crs="+proj=longlat +datum=WGS84 +no_defs",
-#              coords=c("gpslon", "gpslat")) %>%
-#    rename(village_code = gps1,
-#           village_name = gps1a,
-#           reserve_section = gpstrate)
 
 gps = gps %>% rename(
     hh_village_code = gps1,
@@ -143,7 +136,9 @@ ui <-navbarPage(
                          tags$head(
                              includeCSS(paste0(css_folder, "/styles.css"))
                          ),
-                         leafletOutput("map", width = "100%", height = "100%"),
+                         
+                     ##Leaflet map
+                     leafletOutput("map", height = "750px"),    
                          
                          #Filter panel
                          absolutePanel(
@@ -172,17 +167,18 @@ ui <-navbarPage(
                                  
                                  h4("Survey"),
                                  
-                                 selectizeInput(inputId="Survey",
+                                 selectInput(inputId="survey",
                                              label="Survey",
                                              choices=c("Select" = "", unique(merge$survey))),
-                                 selectizeInput(inputId="Topic",
-                                                label="Topic",
-                                                choices=c("Select" = "", unique(merge$topic))),
-                                 selectizeInput(inputId="Question",
-                                                label="Question",
-                                                choices=c("Select" = "", unique(merge$Question)))
-                             )
-                         ),
+                                 conditionalPanel("input.survey",
+                                                  selectInput(inputId="topic",
+                                                label="topic",
+                                                choices=c("Select" = "", unique(merge$topic)))),
+                                 conditionalPanel("input.survey",
+                                                  selectInput(inputId="question",
+                                                         label="question",
+                                                         choices=c("Select" = "", unique(merge$Question))))
+                         )),
                          
                          #Plot panel
                          absolutePanel(
@@ -195,22 +191,21 @@ ui <-navbarPage(
                              right = 0,
                              bottom = "auto",
                              width = "27%", height = "auto", #430
-                             
+                         
                              h3("Use the gear icon to select map parameters"),
                              h4(tags$em("Click on a village for further details")),
                              uiOutput("clear_district", align = "center"),
                              uiOutput("district_result"),
                              htmlOutput("all_india_text"),
-                             h5(strong("Given Parameters, Distribution of Districts with Respect to:")),
-                             plotOutput("myhist", height = 120) #%>% 
+                             h5(strong("Given Parameters, Distribution of Districts with Respect to:"))
+                             )
+                        #     plotOutput("myhist", height = 120) #%>% 
                              #    withSpinner(type = spinner_type, color = spinner_color),
                              #h5(strong("Trend over Time for the Same Parameters:")),
                              #plotOutput("line_plot", height = plot_height) %>% 
                              #    withSpinner(type = spinner_type, color = spinner_color)
-                         )
-                
-                )),
-               
+                         )),
+                         
                 
             tabPanel("Get Involved", 
                      div(class = "Outer",
@@ -235,55 +230,52 @@ server <- function(input, output, session)  {
     
     #Transforming the layer to reactive
     gps_reactive <- reactive({
-        merge %>% filter(reserve_section %in% input$stratum) %>% 
-            filter(survey == input$Survey) %>%
-            filter(topic == input$Topic) %>%
-            filter(Question == input$Question)
+        merge %>% filter(reserve_section %in% input$stratum)
     })
     
-    
     output$map <- renderLeaflet({
-        map =
             ##Base map
             leaflet() %>%
             addProviderTiles('CartoDB.Positron') %>%
-            addProviderTiles('Stamen.TonerLines',
-                             options = providerTileOptions(opacity = 0.35)) %>%
-            addProviderTiles('Stamen.TonerLabels') 
-        
-        map = map %>% 
-            addCircleMarkers(data = gps_reactive,
+  
+        ##add points 
+            addCircleMarkers(data = merge,
                              #radius = ~population/25 + 5,
-                             lng = ~lon,
+                             lng = ~long,
                              lat = ~lat,
-                             color=~wardpal(gpstrate),
-                             stroke = FALSE,
-                             label = ~village_name,
-                             labelOptions = labelOptions(noHide = T, 
-                                                         textOnly = TRUE,
-                                                         direction = 'auto')
+                             color=~wardpal(reserve_section),
+                             #stroke = FALSE,
+                             label = ~village_name
             ) 
     })
-    topic.choice <- reactive({
-        menage %>% 
-            filter(survey == input$Survey) %>%
-            pull(topic)
-    })
-    
-    # Selectize 3 choice's list <---
-    Question.choice <- reactive({
-        menage %>% 
-            filter(survey == input$Survey) %>%
-            filter(topic == input$topic) %>% 
-            pull(Question)
-    })
-    observe({
-        
-        updateSelectizeInput(session, "topic", choices = topic.choice())
-        updateSelectizeInput(session, "Question", choices = Question.choice())
-        
-    })
-}
+
+    # Update drop down selection
+
+ #   observe({
+ #       survey <- if (is.null(input$survey)) character(0) else {
+ #           filter(merge, survey %in% input$survey) %>%
+ #               `$`('Topic') %>%
+ #               unique() %>%
+ #               sort()
+ #       }
+ #       stillSelected <- isolate(input$topic[input$topic %in% topic])
+ #       updateSelectizeInput(session, "topic", choices = topic,
+ #                            selected = stillSelected, server = TRUE) 
+ #   })
+ #   observe({
+ #       question <- if (is.null(input$survey)) character(0) else {
+ #           merge %>%
+ #               filter(survey %in% input$survey,
+ #                      is.null(input$topic) | topic %in% input$topic) %>%
+ #               `$`('topic') %>%
+ #               unique() %>%
+ #               sort()
+ #       }
+  #  stillSelected <- isolate(input$Question[input$Question %in% question])
+  #      updateSelectizeInput(session, "question", choices = question,
+   #                          selected = stillSelected, server = TRUE)
+    #})
+    }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
