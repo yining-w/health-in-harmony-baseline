@@ -230,7 +230,7 @@ server <- function(input, output, session)  {
     
     #Transforming the layer to reactive
     gps_reactive <- reactive({
-        merge %>% filter(reserve_section %in% input$stratum)
+        dplyr::filter(merge, merge$reserve_section==input$stratum)
     })
     
     output$map <- renderLeaflet({
@@ -239,7 +239,7 @@ server <- function(input, output, session)  {
             addProviderTiles('CartoDB.Positron') %>%
   
         ##add points 
-            addCircleMarkers(data = merge,
+            addCircleMarkers(data = gps_reactive(),
                              #radius = ~population/25 + 5,
                              lng = ~long,
                              lat = ~lat,
@@ -251,30 +251,30 @@ server <- function(input, output, session)  {
 
     # Update drop down selection
 
- #   observe({
- #       survey <- if (is.null(input$survey)) character(0) else {
- #           filter(merge, survey %in% input$survey) %>%
- #               `$`('Topic') %>%
- #               unique() %>%
- #               sort()
- #       }
- #       stillSelected <- isolate(input$topic[input$topic %in% topic])
- #       updateSelectizeInput(session, "topic", choices = topic,
- #                            selected = stillSelected, server = TRUE) 
- #   })
- #   observe({
- #       question <- if (is.null(input$survey)) character(0) else {
- #           merge %>%
- #               filter(survey %in% input$survey,
- #                      is.null(input$topic) | topic %in% input$topic) %>%
- #               `$`('topic') %>%
- #               unique() %>%
- #               sort()
- #       }
-  #  stillSelected <- isolate(input$Question[input$Question %in% question])
-  #      updateSelectizeInput(session, "question", choices = question,
-   #                          selected = stillSelected, server = TRUE)
-    #})
+    observe({
+        survey <- if (is.null(input$survey)) character(0) else {
+            filter(merge, survey %in% input$survey) %>%
+                `$`('Topic') %>%
+                unique() %>%
+                sort()
+        }
+        stillSelected <- isolate(input$topic[input$topic %in% topic])
+        updateSelectizeInput(session, "topic", choices = topic,
+                             selected = stillSelected, server = TRUE) 
+    })
+    observe({
+        question <- if (is.null(input$survey)) character(0) else {
+            merge %>%
+                filter(survey %in% input$survey,
+                       is.null(input$topic) | topic %in% input$topic) %>%
+                `$`('topic') %>%
+                unique() %>%
+                sort()
+        }
+    stillSelected <- isolate(input$Question[input$Question %in% question])
+        updateSelectizeInput(session, "question", choices = question,
+                             selected = stillSelected, server = TRUE)
+    })
     }
 
 # Run the application 
