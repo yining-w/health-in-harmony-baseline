@@ -10,46 +10,63 @@ library(shinyWidgets)
 library(shinythemes)
 library(rhandsontable)
 library(RColorBrewer)
+library(sf)
 library(shinycssloaders)
-library(here)
+#library(here)
 remove(list=ls())
 
 #Loading coordinates #############################################################
-library(sf)
-load(here("Baseline_Survey/data/gps.RData"))
+#load(here("Baseline_Survey/data/gps.RData"))
 #load(here("Baseline_Survey/preprocessing/menage_survey.csv"))
 #load(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
+#setwd("~/GitHub/health-in-harmony-baseline-/Baseline_Survey/preprocessing")
+data_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/data"
+css_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/"
+    
+load(paste0(data_folder, "/gps.RData"))
+moustiquaire = read.csv("moustiquaire_survey.csv")
+moustiquaire = moustiquaire %>% select(-n)
+menage = read.csv("menage_survey.csv")
+
+survey = rbind(menage, moustiquaire)
 
 #Transform GPS data into vector data
-gps<-st_as_sf(x=gps,
-              crs="+proj=longlat +datum=WGS84 +no_defs",
-              coords=c("gpslon", "gpslat")) %>%
-    rename(village_code = gps1,
-           village_name = gps1a,
-           reserve_section = gpstrate)
+#gps<-st_as_sf(x=gps,
+#              crs="+proj=longlat +datum=WGS84 +no_defs",
+#              coords=c("gpslon", "gpslat")) %>%
+#    rename(village_code = gps1,
+#           village_name = gps1a,
+#           reserve_section = gpstrate)
 
 gps = gps %>% rename(
-    hh_village_code = village_code
-)
+    hh_village_code = gps1,
+    village_name = gps1a,
+    reserve_section = gpstrate,
+    lat = gpslat,
+    long = gpslon)
+
+
+###merging lat long with survey information
+merge = survey %>% left_join(gps)
 
 #Adding population
-load(here("Baseline_Survey/data/MENAGE.RData"))
-population <- menage %>% select(village_code = hh1, 
-                         reserve_section = hhstrate, 
-                         household_members = hh48) %>%
-    group_by(village_code, reserve_section) %>%
-    summarise(population = sum(household_members, na.rm = TRUE)) %>%
-    select(village_code, population) 
+#load(here("Baseline_Survey/data/MENAGE.RData"))
+#population <- menage %>% select(village_code = hh1, 
+#                         reserve_section = hhstrate, 
+#                         household_members = hh48) %>%
+#    group_by(village_code, reserve_section) %>%
+#    summarise(population = sum(household_members, na.rm = TRUE)) %>%
+#    select(village_code, population) 
 
-gps <- gps %>% left_join(population)
+#gps <- gps %>% left_join(population)
+
+#We also need to add all the variables that are going to be on the map
 
 #Reading Survey #################################################################
-moustiquaire = read.csv(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
-moustiquaire = moustiquaire %>% select(-n)
-menage = read.csv("Baseline_Survey/preprocessing/menage_survey.csv")
+#Here we need to add all the tables that we are going to use on the plots
+#mosquito_1 <- readRDS(here("Baseline_Survey/data/mosquito_nets.rds"))
 
-#Dataset with all the data of the questions
-survey = rbind(menage, moustiquaire)
+mosquito_1 <- readRDS(paste0(data_folder, "/mosquito_nets.rds"))
 
 #This is only temp 
 topic <- c("HOUSING CHARACTERISTICS",
@@ -124,7 +141,7 @@ ui <-navbarPage(
             tabPanel("Baseline Survey Results", 
                      div(class = "outer",
                          tags$head(
-                             includeCSS(here("Baseline_Survey/styles.css"))
+                             includeCSS(paste0(css_folder, "/styles.css"))
                          ),
                          leafletOutput("map", width = "100%", height = "100%"),
                          
@@ -145,7 +162,7 @@ ui <-navbarPage(
                                  
                                  checkboxGroupInput(inputId="stratum",
                                              label="Stratum",
-                                             choices=levels(gps$reserve_section),
+                                             choices=levels(merge$reserve_section),
                                              selected=c("PARCELLE I",
                                                         "FORET CLASSEE",
                                                         "PARCELLE II/LITTORALE")
@@ -155,17 +172,15 @@ ui <-navbarPage(
                                  
                                  h4("Survey"),
                                  
-                                 selectInput(inputId="topic",
-                                             label="Topic",
-                                             choices=topic,
-                                             selected="POSSESSION AND USE OF MOSQUITO NETS",
-                                             multiple=FALSE),
-                                 
-                                 selectInput(inputId="question",
-                                             label="Question",
-                                             choices=c("test1", "test2"),
-                                             selected="test1",
-                                             multiple=FALSE)
+                                 selectizeInput(inputId="Survey",
+                                             label="Survey",
+                                             choices=c("Select" = "", unique(merge$survey))),
+                                 selectizeInput(inputId="Topic",
+                                                label="Topic",
+                                                choices=c("Select" = "", unique(merge$topic))),
+                                 selectizeInput(inputId="Question",
+                                                label="Question",
+                                                choices=c("Select" = "", unique(merge$Question)))
                              )
                          ),
                          
@@ -216,36 +231,57 @@ ui <-navbarPage(
     
     
 # Define server ############################################################
-server <- function(input, output)  { 
-    
-    #Survey data reactive
-    #Gives the data filtered based on the question
-    survey_reactive <- reactive({
-        survey %>% filter(hh_server_section %in% input$stratum,
-                          topic == input$topic,
-                          question == input$question)
-    })
+server <- function(input, output, session)  { 
     
     #Transforming the layer to reactive
-    #Adds the question results to the gps dataset
     gps_reactive <- reactive({
-        gps %>% filter(reserve_section %in% input$stratum) %>%
-            left_join(survey_reactive())
+        merge %>% filter(reserve_section %in% input$stratum) %>% 
+            filter(survey == input$Survey) %>%
+            filter(topic == input$Topic) %>%
+            filter(Question == input$Question)
     })
     
+    
     output$map <- renderLeaflet({
-            leaflet(gps_reactive()) %>%
+        map =
+            ##Base map
+            leaflet() %>%
             addProviderTiles('CartoDB.Positron') %>%
             addProviderTiles('Stamen.TonerLines',
                              options = providerTileOptions(opacity = 0.35)) %>%
-            addProviderTiles('Stamen.TonerLabels') %>%
-            addCircleMarkers(radius = ~population/25 + 5,
+            addProviderTiles('Stamen.TonerLabels') 
+        
+        map = map %>% 
+            addCircleMarkers(data = gps_reactive,
+                             #radius = ~population/25 + 5,
+                             lng = ~lon,
+                             lat = ~lat,
+                             color=~wardpal(gpstrate),
                              stroke = FALSE,
                              label = ~village_name,
                              labelOptions = labelOptions(noHide = T, 
                                                          textOnly = TRUE,
                                                          direction = 'auto')
             ) 
+    })
+    topic.choice <- reactive({
+        menage %>% 
+            filter(survey == input$Survey) %>%
+            pull(topic)
+    })
+    
+    # Selectize 3 choice's list <---
+    Question.choice <- reactive({
+        menage %>% 
+            filter(survey == input$Survey) %>%
+            filter(topic == input$topic) %>% 
+            pull(Question)
+    })
+    observe({
+        
+        updateSelectizeInput(session, "topic", choices = topic.choice())
+        updateSelectizeInput(session, "Question", choices = Question.choice())
+        
     })
 }
 
