@@ -14,12 +14,11 @@ library(sf)
 library(shinycssloaders)
 #library(here)
 remove(list=ls())
-
+setwd("~/GitHub/health-in-harmony-baseline-/Baseline_Survey/preprocessing")
 #Loading coordinates #############################################################
 #load(here("Baseline_Survey/data/gps.RData"))
 #load(here("Baseline_Survey/preprocessing/menage_survey.csv"))
 #load(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
-setwd("~/GitHub/health-in-harmony-baseline-/Baseline_Survey/preprocessing")
 data_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/data"
 css_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/"
     

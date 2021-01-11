@@ -1,8 +1,7 @@
 library(tidyverse)
 library(here)
 rm(list=ls())
-load("~/GitHub/Baseline_Survey/data/enfant.RData")
-
+load(here("GitHub/health-in-harmony-baseline-/Baseline_Survey/data/enfant.RData"))
 # Remote White Space ########################
 dfList <- list(enfant)
 
@@ -16,13 +15,13 @@ enfant = dfList[[1]]
 # Administrative data #############################################################
 
 #Changing the name of administrative columns
-enfant <- enfant %>% rename(interviewer = ch5,
-                          village_code = ch1, 
-                          household_number = ch2,
-                          child_line = ch3,
-                          child_name = ch3a,
-                          mother_line = ch4,
-                          mother_name = ch4a,
+enfant <- enfant %>% rename(hh_interviewer = ch5,
+                          hh_village_code = ch1, 
+                          hh_household_number = ch2,
+                          hh_child_line = ch3,
+                          hh_child_name = ch3a,
+                          hh_mother_line = ch4,
+                          hh_mother_name = ch4a,
                           team_leader = ch6,
                           interview_day = ch7jj,
                           interview_month = ch7mm,
