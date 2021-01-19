@@ -13,7 +13,7 @@ dfList <- lapply(dfList, function(x) {
 
 enfant = dfList[[1]]
 # Administrative data #############################################################
-
+enfant <- enfant %>% select(-contains(c("autre", "nr")))
 #Changing the name of administrative columns
 enfant <- enfant %>% rename(hh_interviewer = ch5,
                           hh_village_code = ch1, 
@@ -39,15 +39,11 @@ enfant <- enfant %>% rename(hh_interviewer = ch5,
                           se_cough = se7,
                           se_cough_treatment = se8) %>%
   #Deleting columns about time and others with no info
-  select(-ch7aa, -ch10a, -finch,
-         -se3nr, -se3f_autre, -se3l_autre,
-         -se6nr, -se6f_autre, -se6l_autre, 
-         -se9nr, -se9f_autre, -se9l_autre,
-         -se9, -se6, -se3) 
+  select(-ch7aa, -ch10a, -finch, -se9, -se6, -se3) 
 
 enfant$completeness = case_when(
-    enfant$completeness == "Completé" ~ 1,
-    enfant$completeness == "Pas à la maison" ~ 0
+    enfant$completeness == "Completé" ~ TRUE,
+    enfant$completeness == "Pas à la maison" ~ FALSE
   )
 
 # seek care data #############################################################
@@ -101,10 +97,16 @@ enfant <- enfant %>% rename(care_cough_hospital = se9a,
                           care_fever_traditional = se6o,
                           care_fever_other = se6x) 
 
-###Change all to 0 or 1
+## Make numeric
+enfant[] <- lapply(enfant, type.convert, as.is = TRUE)
+
+enfant = enfant %>% mutate_at(.vars=vars(starts_with("care_")),
+                              ~ifelse(grepl('OUI', ., ignore.case=TRUE), TRUE, FALSE))
+
+
 v=c(names(enfant[20:35]),names(enfant[39:54]),names(enfant[58:73])) ## check all that apply
 
-enfant[v] <- lapply(enfant[v],function(x){ifelse(x=='', 0, 1)})
+enfant[v] <- lapply(enfant[v],function(x){ifelse(x=='', FALSE, TRUE)})
 
 a=c(names(enfant[14]), names(enfant[18:19]), names(enfant[37:38]), names(enfant[56:57])) ##yes or no
 enfant[a] <- lapply(enfant[a],function(x){ifelse(x=='Non', 0, 1)})
