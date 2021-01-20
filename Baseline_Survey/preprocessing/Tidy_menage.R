@@ -26,7 +26,7 @@ menage <- menage %>% select(c(-hh3, -hh2, -hh6, -hh6a,
                               -hh5aa, -hh11hh, -hh11mn,
                               -hh46_autre, -hhaux,
                               -hh47, -hh56hh, -hh56mn,
-                              -finhh, -fs6ay, -fs6az
+                              -finhh, -fs6ay, -fs6az, -uf26x
                               ))
 
 ## Remove "Specify other" / aggregate of 'check all' questions
@@ -44,7 +44,47 @@ menage <- menage %>% rename(village_code = hh1,
                             women15T49 = hh49,
                             children_U5 = hh51,
                             women15T49_c = hh53,
-                            children_U5_c = hh55)
+                            children_U5_c = hh55) %>%
+  ##make boolean
+  mutate_at(.vars=c(hc13, hc14a, hc14b, hc7,fs1, fs2, fs3, fs4, fs7a, fs7b, fs7x, uf1, uf10, uf12, uf27, uf28, fs11),
+            ~case_when(
+              . == "Traditional" ~ TRUE,
+              . == "Modern" ~ FALSE,
+              . == "Yes, connected to the public network" ~ TRUE,
+              . == "Yes, outside the network" ~ TRUE,
+              . == "Oui" ~ TRUE,
+              . == "Non" ~ FALSE,
+              . == "No" ~ FALSE,
+              . == "Yes, Often" ~ TRUE,
+              . == "Yes, Sometimes" ~ TRUE,
+              . == "Yes, Rarely" ~ TRUE,
+              . == "No, Never" ~ TRUE,
+              . == "Oui, Souvent" ~ TRUE,
+              . == "Oui, rarement" ~ TRUE,
+              . == "Non, Jamais" ~ FALSE,
+              . == "Pas Sure" ~ FALSE,
+              . == "Ne Sait Pas" ~ FALSE,
+              . == "Bonne" ~ TRUE,
+              . == "Mauvaise" ~ FALSE,
+              . == "Eat" ~ TRUE
+              . == "Treatment" ~ FALSE,
+              TRUE ~ NA
+            )) %>% 
+  ##when there is a letter TRUE else NA
+  mutate_at(.vars = c("birth_assist_med",
+                      "birth_assist_nurse",
+                      "birth_assist_assist",
+                      "birth_assist_trad",
+                      "birth_assist_comm",
+                      "birth_assist_close",
+                      "birth_assist_other",
+                      "birth_assist_noone"),
+            #~ifelse(grepl('[A-Z]', .), TRUE, NA)) %>%
+            ~ case_when(
+              grepl('[A-Z]', .) ~ TRUE,
+              !is.na(.) ~ FALSE,
+              TRUE ~ NA,
+            )) 
 
 
 ## Change Completeness
@@ -173,4 +213,89 @@ bool_questions = c("hc6a" , "percent", "Percentage of households who have a cell
                    'uf9d', 'percent', 'Percentage of households who did not enter the forest because they did not have the opportunity to', "Forest Use",
                    'uf9e', 'percent', 'Percentage of households who did not enter the forest because it was too far', "Forest Use",
                    'uf9x', 'percent', 'Percentage of households who did not enter the forest because of other reasons', "Forest Use",
+                   'uf10', 'percent', 'Percentage of households who used anything from the forest to pay for healthcare in the last twelve months', 'Forest Use',
+                   'uf12', 'percent', 'Percentage of people aware of rules governing forest entry', 'Forest Use',
+                   'uf13', 'percent', 'Percentage of people who think there are benefits to living in the forest', 'Forest Use',
+                   'uf14a', 'percent', 'Percentage of people who think of water source as a benefit to living in the forest', 'Forest Use',
+                   'uf14b', 'percent', 'Percentage of people who think of animal protein as a benefit to living in the forest', 'Forest Use',
+                   'uf14c', 'percent', 'Percentage of people who think of construction materials as a benefit to living in the forest', 'Forest Use',
+                   'uf14d', 'percent', 'Percentage of people who think of firewood as a benefit to living in the forest', 'Forest Use',
+                   'uf14e', 'percent', 'Percentage of people who think of source of fruit as a benefit to living in the forest', 'Forest Use',
+                   'uf14f', 'percent', 'Percentage of people who think of source of seeds as a benefit to living in the forest', 'Forest Use',
+                   'uf14g', 'percent', 'Percentage of people who think of medicinal plants as a benefit to living in the forest', 'Forest Use',
+                   'uf14h', 'percent', 'Percentage of people who think of clean air as a benefit to living in the forest', 'Forest Use',
+                   'uf14i', 'percent', 'Percentage of people who think of rain source as a benefit to living in the forest', 'Forest Use',
+                   'uf14j', 'percent', 'Percentage of people who think of shade as a benefit to living in the forest', 'Forest Use',
+                   'uf14k', 'percent', 'Percentage of people who think of tourism as a benefit to living in the forest', 'Forest Use',
+                   'uf14l', 'percent', 'Percentage of people who think of cultural spaces as a benefit to living in the forest', 'Forest Use',
+                   'uf14x', 'percent', 'Percentage of people who think of other benefits to living in the forest', 'Forest Use',
+                   'uf15', 'percent', 'Percentage of people who think there are downsides to living in the forest', 'Forest Use',
+                   'uf16a', 'percent', 'Percentage of people who think of diseases as a downside to living in the forest', 'Forest Use',
+                   'uf16b', 'percent', 'Percentage of people who think of wild animals as a downside to living in the forest', 'Forest Use',
+                   'uf16c', 'percent', 'Percentage of people who think of bad spirits as a downside to living in the forest', 'Forest Use',
+                   'uf16d', 'percent', 'Percentage of people who think of insects as a downside to living in the forest', 'Forest Use',
+                   'uf16e', 'percent', 'Percentage of people who think of restrictions as a downside to living in the forest', 'Forest Use',
+                   'uf16f', 'percent', 'Percentage of people who think of fires as a downside to living in the forest', 'Forest Use',
+                   'uf16x', 'percent', 'Percentage of people who think of other downsides to living in the forest', 'Forest Use',
+                   'uf16a', 'percent', 'Percentage of people who think of diseases as a downside to living in the forest', 'Forest Use',
+                   'uf19a', 'percent', 'Percentage of people who think there are tree cutting threats from the forest', 'Forest Use',
+                   'uf19a', 'percent', 'Percentage of people who think there are bush fire threats from the forest', 'Forest Use',
+                   'uf19c', 'percent', 'Percentage of people who think there are burnt agriculture from the forest', 'Forest Use',
+                   'uf19d', 'percent', 'Percentage of people who think there are threats to wet rice from the forest', 'Forest Use',
+                   'uf19e', 'percent', 'Percentage of people who think there are threats to charcoal from the forest', 'Forest Use',
+                   'uf19f', 'percent', 'Percentage of people who think there are threats to hunting from the forest', 'Forest Use',
+                   'uf19x', 'percent', 'Percentage of people who think there are other threats from the forest', 'Forest Use',
+                   'uf20', 'percent', 'Percentage of people who think the forest should be protected', 'Forest Use',
+                   'uf21a', 'percent', 'Percentage of people who think the forest should be protected for its water source', 'Forest Use',
+                   'uf21b', 'percent', 'Percentage of people who think the forest should be protected for its mosquito population', 'Forest Use',
+                   'uf21c', 'percent', 'Percentage of people who think the forest should be protected for its tourist destination', 'Forest Use',
+                   'uf21d', 'percent', 'Percentage of people who think the forest should be protected for its clean air', 'Forest Use',
+                   'uf21e', 'percent', 'Percentage of people who think the forest should be protected for its shade', 'Forest Use',
+                   'uf21f', 'percent', 'Percentage of people who think the forest should be protected for its agricultural uses', 'Forest Use',
+                   'uf22', 'percent', 'Percentage of people who think it is acceptable to cut trees', 'Forest Use',
+                   'uf23a', 'percent', 'Percentage of people who think it is unacceptable to cut trees because it endangers animals', 'Forest Use',
+                   'uf23b', 'percent', 'Percentage of people who think it is unacceptable to cut trees because of various reasons', 'Forest Use',
+                   'uf23c', 'percent', 'Percentage of people who think it is unacceptable to cut trees because they should not sell them', 'Forest Use',
+                   'uf23d', 'percent', 'Percentage of people who think it is unacceptable to cut trees because it is illegal', 'Forest Use',
+                   'uf23e', 'percent', 'Percentage of people who think it is unacceptable to cut trees because it is customary', 'Forest Use',
+                   'uf23x', 'percent', 'Percentage of people who think it is unacceptable to cut trees because of other reasons', 'Forest Use',
+                   'uf24a', 'percent', 'Percentage of people who think it is acceptable to cut trees because it will not endanger the forest', 'Forest Use',
+                   'uf24b', 'percent', 'Percentage of people who think it is acceptable to cut trees for various reasons', 'Forest Use',
+                   'uf24c', 'percent', 'Percentage of people who think it is acceptable to cut trees for need', 'Forest Use',
+                   'uf24d', 'percent', 'Percentage of people who think it is acceptable to cut trees to construct housing', 'Forest Use',
+                   'uf24e', 'percent', 'Percentage of people who think it is acceptable to cut trees because it is customary', 'Forest Use',
+                   'uf24x', 'percent', 'Percentage of people who think it is acceptable to cut trees for other reasons', 'Forest Use',
+                   'uf26a', 'percent', 'Percentage of people who think communities will stop cutting trees and hunting if they could cut costs associated with care', 'Forest Use',
+                   'uf26b', 'percent', 'Percentage of people who think communities will continue cutting trees and hunting if they could cut costs associated with care', 'Forest Use',
+                   'uf26c', 'percent', 'Percentage of people who think communities are not cutting trees in the forest', 'Forest Use',
+                   'uf26d', 'percent', 'Percentage of people who think communities are not hunting in the forest', 'Forest Use',
+                   'uf26e', 'percent', 'Percentage of people who think communities need the forest for other survival needs', 'Forest Use',
+                   'uf27', 'percent', 'Percentage of people who think the drill is a good thing', 'Forest Use',
+                   'uf28', 'percent', 'Percentage of people who want the forest to best there for future generations', 'Forest Use'
                    )
+
+bool_questions = matrix(bool_questions, ncol = 4, byrow = TRUE)
+
+#Function to compute the sum and total for each question in each village
+bool_type <- function(df, col){
+  #Creating the new dataframe
+  df <- df %>% select(village_code, all_of(col)) %>%
+    group_by(village_code) %>%
+    summarise_all(.funs = list(value = ~ sum(., na.rm = TRUE),
+                               total = ~ sum(!is.na(.))))
+  
+  return(df)
+}
+
+#Apply the bool_type function to each column in bool_questions        
+bool_df <- apply(bool_questions, 1, function(x){
+  bool_type(tableau_de_menage, x[1]) %>%
+    mutate(question = x[3],
+           topic = x[4])
+})
+
+#From list to dataframe
+bool_df <- bind_rows(bool_df) %>%
+  select(village_code, topic, question, value, total) %>%
+  mutate(type = "Percentage")
+                   
