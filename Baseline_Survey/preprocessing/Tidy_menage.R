@@ -15,6 +15,8 @@ dfList <- lapply(dfList, function(x) {
 } )
 
 menage = dfList[[1]]
+menage[] <- lapply(menage, type.convert, as.is = TRUE)
+
 # Administrative data #############################################################
 
 #Changing the name of administrative columns
@@ -50,14 +52,19 @@ menage <- menage %>% rename(village_code = hh1,
                     "hc7","fs1", "fs2", "fs3", 
                     "fs4", "fs7a", "fs7b", "fs7x", 
                     "uf1", "uf10", "uf12", 
-                    "uf27", "uf28", "fs11", "hc16", "st6a", "st6b", "st6c"),
+                    "uf27", "uf28", "fs11", "hc16", "st6a", "st6b", "st6c",
+                    "uf17"),
             ~case_when(
+              . == "OUI, TRES MENACE" ~ TRUE,
+              . == "OUI, PEU MENACE",
               . == "Sometimes" ~ TRUE,
-              . == "Traditional" ~ TRUE,
-              . == "Modern" ~ FALSE,
+              . == "TRADITIONNEL" ~ TRUE,
+              . == "MODERNE" ~ FALSE,
               . == "Oui, en dehors du reseau (Génerateur/panneau solaire/système isolé)" ~ TRUE,
               . == "Oui, connecté au reseau public" ~ TRUE,
               . == "Oui" ~ TRUE,
+              . == "OUI" ~ TRUE,
+              . == "NON" ~ FALSE,
               . == "Non" ~ FALSE,
               . == "No" ~ FALSE,
               . == "Yes, Often" ~ TRUE,
@@ -140,6 +147,8 @@ menage <- menage %>% rename(village_code = hh1,
               TRUE ~ NA,
             )) 
 
+
+###NEED TO COMPLETE: hc10, hc11, plug values for DK (ster_wanted_childs = ifelse(ster_wanted_childs > 90, NA, ster_wanted_childs))
 
 ## Change Completeness
 menage <- menage %>% mutate(completeness = ifelse(completeness == "Completé", TRUE, FALSE))
@@ -559,10 +568,76 @@ menage <- menage %>%
                           'Suspended toilets' = 'TOILETTES SUSPENDUES/LATRINES SUSPENDUES',
                           'Water flush connected to latrines' =  'CHASSE D?EAU : RELIE AUX LATRINES',
                           'Water flush connected to free air' = "CHASSE D?EAU : RELIE A L'AIR LIBRE"),
+         ws7 = factor(ws7, levels = c("Nature", "Open pit", "non washable slab",
+                                      "washable slab", "Other", "Suspended toilets",
+                                      "Water flush connected to latrines", "Water flush connected to free air")),
          fs9 = ifelse(fs9 == "NON REPONSE", NA_character_, as.character(fs9)),
          fs9 = fct_recode(fs9,
-                          ""),
-         fs9 = factor()
-         )),
+                          "Nature" = 'PAS DE TOILETTES/ NATURE/CHAMPS',
+                          'Open pit' = 'LATRINE A FOSSE : LATRINE A FOSSE SANS DALLE/FOSSE OUVERTE',
+                          'non washable slab' = 'LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE NON LAVABLE',
+                          'washable slab' = 'LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE LAVABLE',
+                          'Other' =  'AUTRE',
+                          'Suspended toilets' = 'TOILETTES SUSPENDUES/LATRINES SUSPENDUES',
+                          'Water flush connected to latrines' =  'CHASSE D?EAU : RELIE AUX LATRINES',
+                          'Water flush connected to free air' = "CHASSE D?EAU : RELIE A L'AIR LIBRE"),
+         fs9 = factor(fs9, levels = c("Nature", "Open pit", 
+                                      "non washable slab", "washable slab",
+                                      "Other", "Suspended toilets", "Water flush connected to latrines",
+                                      "Water flush connected to free air")),
+         uf4 = ifelse(uf4 == "NON REPONSE", NA_character_, as.character(uf4)),
+         uf4 = fct_recode(uf4,
+                          "Construction wood" = "BOIS DE CONSTRUCTION",
+                           "Other" = "AUTRE",
+                          "Pirogue Construction" = "CONSTRUCTION DE PIROGUE"),
+         uf4 = factor(uf4, levels = c("Construction wood", "Other", "Pirogue Construction")),
+         uf5 = ifelse(uf5 == "NON REPONSE", NA_character_, as.character(uf5)),
+         uf5 = fct_recode(uf5,
+                          "Smoking the bees" = "EN ENFUMANT LES ABEILLES",
+                          "Harvesting from trees" = "EN RECOLTANT SIMPLEMENT DANS L'ARBRE"),
+         uf5 = factor(uf5, levels = c("Smoking the Bees", "Harvesting from trees")),
+         uf7 = ifelse(uf7 == "Non Reponse", NA_character_, as.character(uf7)),
+         uf7 = fct_recode(uf7, 
+                          "Construction Wood" = "BOIS DE CONSTRUCTION",
+                          "Charcoal"= "CHARBON DE BOIS",
+                          "Firewood" = "BOIS DE CHAUFFAGE",
+                          "Pirogue construction" = "CONSTRUCTION DE PIROGUE"),
+         uf8 = ifelse(uf8 == "Non Reponse", NA_character_, as.character(uf8)),
+         uf8 = fct_recode(uf8,
+                          "Smoking the bees" = "EN ENFUMANT LES ABEILLES",
+                          "Harvesting from trees" = "EN RECOLTANT SIMPLEMENT DANS L'ARBRE"),
+         uf8 = factor(uf8,levels = c("Smoking the bees", "Harvesting from trees")),
+         uf11 = ifelse(uf11 == "NE SAIT PAS", NA_character_, as.character(uf11)),
+         uf11 = fct_recode(uf11,
+                           "Parcel II" = "PARCELLE II LITTORALE DE LA RESERVE SPECIALE / STRICTE",
+                           "Parcel I" = "PARCELLE I DE LA RESERVE SPECIALE / STRICTE",
+                           "Special Reserve"= "FORET CLASSEE"),
+         uf11 = factor(uf11, levels = c("Parcel II", "Parcel I", "Special Reserve")),
+         uf18 = ifelse(uf18 == "NON REPONSE", NA_character_, as.character(uf18)),
+         uf18 = fct_recode(uf18, 
+                           "Cutting Trees" = "COUPE DES ARBRES",
+                           "Bush fires" = "FEUX DE BROUSSES",
+                           "Other" = "AUTRE",
+                           "Hunt" = "CHASSE",
+                           "Agriculture" = "AGRICULTURE SUR BRULIS / TAVY",
+                           "Charcoal Manufacturing" = "FABRICATION DU CHARBON DE BOIS",
+                           "Wet Rice Agriculture" = "AGRICULTURE DE RIZ HUMIDE"),
+         uf18 = factor(uf18, levels = c("Cutting Trees", "Bush fires", "Other", "Hunt", 
+                                        "Agriculture", "Charcoal Manufacturing", "Wet Rice Agriculture")))
          
-unique(menage$fs9)
+####################################################################################
+# Categorical several columns ######################################################
+####################################################################################
+#Columns need to be boolean (TRUE, FALSE, NA)
+#NA means no response
+
+#List with categorical questions that are in more than 1 column
+#The second column indicates to which group of question they belong
+cat_questions_xc = c("birth_assist_med", 1, "Doctor", "Assistance during birth" ,"Fertility",
+                     "birth_assist_nurse", 1, "Nurse / Midwife", "Assistance during birth" ,"Fertility",
+                     "birth_assist_assist", 1, "Medical assistant", "Assistance during birth" ,"Fertility",
+                     "birth_assist_trad", 1, "Traditional delivery", "Assistance during birth" ,"Fertility",
+                     "birth_assist_comm", 1, "Community health officer", "Assistance during birth" ,"Fertility",
+                     "birth_assist_close", 1, "Relative / Friend", "Assistance during birth" ,"Fertility",
+                     "birth_assist_other", 1, "Other", "Assistance during birth" ,"Fertility",
+                     "birth_assist_noone", 1, "Nobody", "Assistance during birth" ,"Fertility")#,
