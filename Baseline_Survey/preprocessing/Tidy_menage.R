@@ -3,7 +3,7 @@ library(dplyr)
 library(data.table)
 
 rm(list=ls())
-load("~/GitHub/Baseline_Survey/data/menage.RData")
+load(here("Baseline_Survey/data/MENAGE.RData"))
 
 # Remote White Space ########################
 dfList <- list(menage)
@@ -31,7 +31,7 @@ menage <- menage %>% select(c(-hh3, -hh2, -hh6, -hh6a,
 
 ## Remove "Specify other" / aggregate of 'check all' questions
 menage <- menage %>% select(-contains(c("autre", "nr")),-ws6, -st4, -uf3, -fs6a, -fs5b, -tn18b)
-  
+  unique(menage$hc7)
 ##Rename Administrative info
 detach("package:plyr", unload=TRUE)
 
@@ -50,12 +50,13 @@ menage <- menage %>% rename(village_code = hh1,
                     "hc7","fs1", "fs2", "fs3", 
                     "fs4", "fs7a", "fs7b", "fs7x", 
                     "uf1", "uf10", "uf12", 
-                    "uf27", "uf28", "fs11"),
+                    "uf27", "uf28", "fs11", "hc16", "st6a", "st6b", "st6c"),
             ~case_when(
+              . == "Sometimes" ~ TRUE,
               . == "Traditional" ~ TRUE,
               . == "Modern" ~ FALSE,
-              . == "Yes, connected to the public network" ~ TRUE,
-              . == "Yes, outside the network" ~ TRUE,
+              . == "Oui, en dehors du reseau (Génerateur/panneau solaire/système isolé)" ~ TRUE,
+              . == "Oui, connecté au reseau public" ~ TRUE,
               . == "Oui" ~ TRUE,
               . == "Non" ~ FALSE,
               . == "No" ~ FALSE,
@@ -63,15 +64,17 @@ menage <- menage %>% rename(village_code = hh1,
               . == "Yes, Sometimes" ~ TRUE,
               . == "Yes, Rarely" ~ TRUE,
               . == "No, Never" ~ TRUE,
-              . == "Oui, Souvent" ~ TRUE,
+              . == "OUI, SOUVENT / TRES" ~ TRUE,
               . == "Oui, rarement" ~ TRUE,
-              . == "Non, Jamais" ~ FALSE,
+              . == "OUI, QUELQUEFOIS/UN PEU"
+              . == "NON/JAMAIS" ~ FALSE,
               . == "Pas Sure" ~ FALSE,
               . == "Ne Sait Pas" ~ FALSE,
               . == "Bonne" ~ TRUE,
               . == "Mauvaise" ~ FALSE,
               . == "Eat" ~ TRUE
               . == "Treatment" ~ FALSE,
+              . == "NON REPONSE" ~ NA,
               TRUE ~ NA
             )) %>% 
   ##when there is a letter TRUE else NA
@@ -142,6 +145,10 @@ menage <- menage %>% rename(village_code = hh1,
 menage <- menage %>% mutate(completeness = ifelse(completeness == "Completé", TRUE, FALSE))
 menage <- menage %>% mutate(permission = ifelse(permission == "OUI", TRUE, FALSE))
 
+#####################################################################
+# Boolean ###########################################################
+#####################################################################
+
 #Matrix with the questions/KPIs. The second column indicates the divisor
 bool_questions = c("hc6a" , "percent", "Percentage of households who have a cellphone", "Household characteristics",
                    "hc6b", "percent", "Percentage of households who have a show", "Household characteristics",
@@ -178,6 +185,7 @@ bool_questions = c("hc6a" , "percent", "Percentage of households who have a cell
                    'hc24', 'percent', 'Percentage of households who have a computer tablet', 'Household characteristics',
                    'hc26', 'percent', 'Percentage of households who have internet access', 'Household characteristics',
                    'hc27', 'percent', 'Percentage of households who have a bank account', 'Household characteristics',
+                   'ws5', 'percent', "Percentage of households who make their water safer to drink", 'Water and Sanitation',
                    'ws6a', 'percent', 'Percentage of households who boil water to make it healthier to drink', 'Water and Sanitation',
                    'ws6b', 'percent', 'Percentage of households who add bleach or chlorine to water to make it healthier to drink', 'Water and Sanitation',
                    'ws6c', 'percent', 'Percentage of households who filter water through a cloth to make it healthier to drink', 'Water and Sanitation',
@@ -214,6 +222,9 @@ bool_questions = c("hc6a" , "percent", "Percentage of households who have a cell
                    'st4n', 'percent', 'Percentage of households who go to a shop/market/street when they become ill', 'Health Care and Treatment',
                    'st4o', 'percent', 'Percentage of households who go to a traditional practitioner when they become ill', 'Health Care and Treatment',
                    'st4x', 'percent', 'Percentage of households who seek other help when they become ill', 'Health Care and Treatment',
+                   "st6a", "percent", "Percentage of households whose transport cost was difficult to cover for treatment", "Health Care and Treatment",
+                   "st6b", "percent", "Percentage of households whose medicine cost was difficult to cover for treatment", "Health Care and Treatment",
+                   "st6c", "percent", "Percentage of households whose health cost was difficult to cover for treatment", "Health Care and Treatment",
                    'st7', 'percent', 'Percentage of households who could not follow treatment due to high costs', 'Health Care and Treatment',
                    'st8a', 'percent', 'Percentage of households who could not follow treatment due to transportation costs', 'Health Care and Treatment',
                    'st8b', 'percent', 'Percentage of households who could not follow treatment due to medicine costs', 'Health Care and Treatment',
@@ -349,4 +360,209 @@ bool_df <- apply(bool_questions, 1, function(x){
 bool_df <- bind_rows(bool_df) %>%
   select(village_code, topic, question, value, total) %>%
   mutate(type = "Percentage")
-                   
+
+############################################################################
+# Average ##################################################################
+############################################################################
+#Columns need to be numerical
+#NA means no response (be careful because some NA need to be change to 0)
+
+avg_questions = c("h48", "Average number of household members", "Household characteristics",
+                  "hc10", "Average hectares of land", "Household characteristics",
+                  "hc11", "Average hectare used for agriculture", "Household characteristics",
+                  "hc15a", "Average months to grow irrigated rice", "Household characteristics",
+                  "hc15b", "Average months to grow rainfed rice", "Household characteristics",
+                  "hc20a", "Average number of dairy cows or bulls", "Household characteristics",
+                  "hc20b", "Average number of Zebus", "Household characteristics",
+                  "hc20c", "Average number of Goats", "Household characteristics",
+                  "hc20d", "Average number of Sheep", "Household characteristics",
+                  "hc20e", "Average number of chicken", "Household characteristics",
+                  "hc20f", "Average number of pigs", "Household characteristics",
+                  "hc20g", "Average number of other poultry", "Household characteristics",
+                  "hc20x", "Average number of other animals", "Household characteristics",
+                  "hc23", "Average number of rooms used for sleeping", "Household characteristics",
+                  "hc29", "Average total income in the last twelve months", "Household characteristics",
+                  "ws4", "Average time to go to water source and return", "Water and Sanitation",
+                  "tn2", "Average number of mosquito nets", "Possession and Use of Mosquito Nets",
+                  "fs6b", "Average number of months without rice in meals", "Food supply",
+                  )
+avg_questions = matrix(avg_questions, ncol = 3, byrow = TRUE)
+
+avg_questions = as.data.frame(avg_questions)
+names(avg_questions) <- c("variable", "question", "topic")
+
+#Calculating the total column
+avg_df_total <- nenage %>% 
+  select(village_code, avg_questions[,1]) %>%
+  group_by(village_code) %>%
+  summarise_all(~sum(!is.na(.))) %>%
+  gather(key = "variable", value = "total", -village_code)
+
+#Calculating the average column
+avg_df_avg <- menage %>% 
+  select(village_code, avg_questions[,1]) %>%
+  group_by(village_code) %>%
+  summarise_all(~mean(., na.rm = TRUE)) %>%
+  gather(key = "variable", value = "value", -village_code)
+
+#Join the two dataframes
+avg_df <- avg_df_avg %>% left_join(avg_df_total, by = c("village_code", "variable")) %>%
+  mutate(value = ifelse(!is.nan(value), value, NA)) %>%
+  left_join(avg_questions, by = "variable") %>%
+  select(-variable) %>%
+  select(village_code, topic, question, value, total) %>%
+  mutate(type = "Average")
+
+###############################################################################
+# Categorical one column ######################################################
+###############################################################################
+#Columns needs to factor, with all the levels
+#NA means no response
+#Matirx with the categorical questions in just one column
+
+menage <- menage %>%
+  mutate(
+         hc1 = ifelse(hc1 %in% c("NSP", "Non reponse"), NA_character_, as.character(hc1)),
+         hc1 = fct_recode(hc1,
+                            "Mat" = "NATTE",
+                            "Bamboo" = "PALME / BAMBOU",
+                            "Ceramic Tiles" = "CARRELAGE EN CERAMIQUE",
+                            "Earth / Sand" = "TERRE / SABLE",
+                            "Wood Planks" = "PLANCHES DE BOIS",
+                          "Polished Wood" = 'PARQUET EN BOIS OU BOIS POLI',
+                          'Dung' = "BOUSE",
+                          "Cement"= "CIMENT",
+                          "Vinyl or Asphalt Strips" = 'BANDES DE VINYLE OU D?ASPHALTE',
+                          'Carpet or Rug' = 'MOQUETTE / TAPIS'),
+         hc1 = factor(hc1, levels = c("Mat",
+                                          "Bamboo",
+                                          "Ceramic Tiles",
+                                          "Earth / Sand",
+                                          "Wood Planks",
+                                          "Polished Wood",
+                                          "Dung",
+                                          "Cement",
+                                          "Vinyl or Asphalt Strips",
+                                          "Carpet or Rug")),
+         hc2 = ifelse(hc2 == "NON REPONSE", NA_character_, as.character(hc2)),
+         hc2 = fct_recode(hc2,
+                          "Mat" = "NATTE",
+                          "Bamboo" = "CHAUME / FEUILLE DE PALME PALMIER / BAMBOU / ZOZORO",
+                          "Grass" = "MOTTES D'HERBES",
+                          "Wood Planks" = "PLANCHES DE BOIS",
+                          "Metal or Aluminium" = "TOLE / METAL / ALUMINIUM",
+                          "No Roof" = "PAS DE TOIT"),
+         hc2 = factor(hc2, levels = c("Mat", "Bamboo", "Grass", 
+                                      "Wood Planks", "Metal or Aluminium", "No Roof")),
+         hc3 = ifelse(hc3 == "NON REPONSE", NA_character_, as.character(hc3)),
+         hc3 = fct_recode(hc3,
+                          "Bamboo" = "CANE / PALME / TRONCS / ZOZORO",
+                          "No wall" = "PAS DE MURS",
+                          "Plates" = "CONTRE PLAQUE",
+                          "Mud" = "BOUE",
+                          "Wood Planks" = "PLANCHES DE BOIS/BARDEUX",
+                          "Uncovered Adobe" = "ADOBE NON RECOUVERT/BANCO",
+                          "Other" = "AUTRE"),
+         hc3 = factor(hc3, levels = c("Bamboo", "No wall", "Plates", "Mud", "Wood Planks",
+                                      "Uncovered Adobe", "Other")),
+         hc4a = ifelse(hc4a == "NON REPONSE", NA_character_, as.character(hc4a)),
+         hc4a = fct_recode(hc4a,
+                           "Open fire" = "Feu sur Trois pierres / feu ouvert",
+                           "Traditional solid fuel stove" = "Cuisiniere traditionnelle a combustible solide",
+                           "Solar cooker" = "Cuisiniere solaire",
+                           "Solid Fuel Stove" = "Cuisiniere a combustible solide",
+                           "No meal prepared" = "PAS DE REPAS PRÉPARÉ DANS MENAGE",
+                           "Liquid Fuel Cooker" = "Cuisiniere a combustible liquide",
+                           "Liquid Gas Cooker" = "Cuisiniere a gaz liquide (GPL)"),
+         hc4a = factor(hc4a, levels = c("Open fire", "Traditional solid fuel stove",
+                                        "Solar cooker", "Solid Fuel Stove", "No meal prepared",
+                                        "Liquid Fuel Cooker", "Liquid Gas Cooker")),
+         hc4b = ifelse(hc4b == "NON REPONSE", NA_character_, as.character(hc4b)),
+         hc4b = fct_recode(hc4b,
+                           "Wood" = "BOIS",
+                           "Biomass" = "BIOMASS MANUFACTUREE (GRANULES) OU COPEAUX DE BOIS",
+                           "Charcoal" = "CHARBON DE BOIS",
+                           "Animal Waste" = "BOUSE D?ANIMAUX / DECHETS",
+                           "Grass" = "RESIDUS AGRICOLES / HERBES/ PAILLES/ ARBUSTES",
+                           "Diesel" = "ESSENCE / DIESEL",
+                           "Alcohol" = "ALCOOL / ETHANOL",
+                           "Petroleum" = "PETROLE / PARAFFINE"),
+         hc4b = factor(hc4b, levels = c("Wood", "Biomass", "Charcoal",
+                                        "Animal Waste", "Grass", "Diesel",
+                                        "Alcohol", "Petroleum")),
+         hc5 = ifelse(hc5 == "NON REPONSE", NA_character_, as.character(hc5)),
+         hc5 = fct_recode(hc5, 
+                          "In a non separate room in the main house" = "DANS LA MAISON PRINCIPALE : DANS UNE PIECE NON SEPAREE",
+                          "In a separate room in the main house" = "DANS LA MAISON PRINCIPALE : DANS UNE PIECE SEPARE",
+                          "In a separate building" = "DANS UN BATIMENT SEPARE",
+                          "Outside on a veranda or a covered porch" = "DEHORS : SUR UNE VERANDA OU UN PORCHE COUVERT",
+                          "Outdoors" = "DEHORS: A LAIR LIBRE"),
+         hc5 = factor(hc5, levels = c("In a non separate room in the main house",
+                                      "In a separate room in the main house",
+                                      "In a separate building",
+                                      "Outside on a veranda or a covered porch",
+                                      "Outdoors")),
+         hc9 = ifelse(hc4b == "NON REPONSE", NA_character_, as.character(hc4b)),
+         hc9 = fct_recode(hc9,
+                          "No titles" = "AUCUN TITREES",
+                          "Partially titled" = "PARTIELLEMENT TITREES",
+                          "Totally titled" = "TOUS TITREES"),
+         hc9 = factor(hc9, levels = c("No titles", "Partially titled", "Totally titled")),
+         hc28 = ifelse(hc28 == "Non Reponse", NA_character_, as.character(hc28)),
+         hc28 = fct_recode(hc28,
+                           "Other" = 'AUTRE',
+                           'Employed' = 'EMPLOYÉ  (GOUVERNEMENT, ONG, AUTRE?)',
+                           'No income' = 'PAS DE REVENU',
+                           "Small Business Owner" = "PROPRIÉTAIRE D'UNE PETITE ENTREPRISE",
+                           "Sell honey"='VENDRE DU MIEL',
+                           "Sell crafts" = "VENTE D'ARTISANAT",
+                           'Sell wood' = 'VENTE DE BOIS',
+                           "Sell other forest products" = "VENTE D'AUTRES PRODUITS FORESTIERS",
+                           "Sell firewood" =  "VENTE DE BOIS DE CHAUFFAGE",
+                           "Sell charcoal" =  "VENTE DE CHARBON DEBOIS",
+                           "Sell fish" = "VENTE DE POISSON",
+                           "Sell ravinala or thatch" = 'VENTE DE RAVINALA / CHAUME',
+                           "Sell agricultural products" = "VENTE DE PRODUITS AGRICOLES (MANIOC, TUBERCULES, PAR EXEMPLE)",
+                           "Sell crops"= "VENTE DE CULTURES DE RENTE (CAFÉ, VANILLE, CLOU DE GIROFLE, PAR EXEMPLE)",
+                           "Sell prepared meals"= "VENTE DE PLATS PRÉPARÉS  (PLATS FRITS / GÂTEAUX DE POISSON PAR EXEMPLE)"),
+         hc28 = factor(hc28, levels = c("Other", "Employed", "No income",
+                                        "Small Business Owner", "Sell honey",
+                                        "Sell crafts", "Sell wood",
+                                        "Sell other forest products", "Sell firewood",
+                                        "Sell charcoal", "Sell fish",
+                                        "Sell ravinala or thatch", "Sell agricultural products",
+                                        "Sell crops", "Sell prepared meals")),
+         ws1 = ifelse(ws1 == "NON REPONSE", NA_character_, as.character(ws1)),
+         ws1 = fct_recode(ws1, 
+                          "unprotected source" = 'SOURCE: SOURCE NON PROTEGEE',
+                          'protected source' = "SOURCE: SOURCE PROTEGEE",
+                          'Surface water' = "EAU DE SURFACE (RIVIERE, BARRAGE, LAC, MARE, COURANT, CANAL, SYSTEME D?IRRIGATION)",
+                          'Protected hollow well' =  'PUITS CREUSE: PAS PROTEGE',
+                          "Unprotected hollow well" =  'PUITS CREUSE: PAS PROTEGE',
+                          'Conditioned bottled water' = 'EAU CONDITIONNEE: EAU EN BOUTEILLE',
+                          'Hollow well' = 'PUITS CREUSE: PROTEGE',
+                          'Tap in the garden' = 'ROBINET: DANS LA CONCESSION/JARDIN/ PARCELLE',
+                          'Tap in the housing' = 'ROBINET: DANS LE LOGEMENT',
+                          'Public tap or fountain terminal' = 'ROBINET: ROBINET PUBLIC/BORNE FONTAINE',
+                          'Pump or drilling wells' ='PUITS A POMPE/FORAGE'),
+         ws1 = factor(ws1, levels = c("unprotected source", "protected source",
+                                       "Surface water", "Protected hollow well",
+                                       "Unprotected hollow well", "Conditioned bottled water",
+                                       "Hollow well", "Tap in the garden", "Tap in the housing")),
+         ws7 = ifelse(ws7 == "NON REPONSE", NA_character_, as.character(ws7)),
+         ws7 = fct_recode(ws7,
+                          "Nature" = "PAS DE TOILETTES/ NATURE/CHAMPS",
+                          'Open pit' = "LATRINE A FOSSE : LATRINE A FOSSE SANS DALLE/FOSSE OUVERTE",
+                          'non washable slab' = 'LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE NON LAVABLE',
+                          'washable slab' = "LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE LAVABLE",
+                          'Other' = 'AUTRE',
+                          'Suspended toilets' = 'TOILETTES SUSPENDUES/LATRINES SUSPENDUES',
+                          'Water flush connected to latrines' =  'CHASSE D?EAU : RELIE AUX LATRINES',
+                          'Water flush connected to free air' = "CHASSE D?EAU : RELIE A L'AIR LIBRE"),
+         fs9 = ifelse(fs9 == "NON REPONSE", NA_character_, as.character(fs9)),
+         fs9 = fct_recode(fs9,
+                          ""),
+         fs9 = factor()
+         )),
+         
+unique(menage$fs9)
