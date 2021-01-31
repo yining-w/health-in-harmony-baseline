@@ -17,6 +17,25 @@ dfList <- lapply(dfList, function(x) {
 menage = dfList[[1]]
 menage[] <- lapply(menage, type.convert, as.is = TRUE)
 
+##make all obs upper case
+menage = data.frame(lapply(menage, function(v) {
+  if (is.character(v)) return(toupper(v))
+  else return(v)
+}))
+
+##remove special characters
+menage <- data.frame(lapply(menage, function(x) {
+                  gsub("/", "", x)
+              }))
+
+menage <- data.frame(lapply(menage, function(x) {
+  gsub(",", "", x)
+}))
+
+menage = data.frame(lapply(menage, function(x) {
+  gsub("[^[:alnum:][:blank:]+?&/\\-]", "", x)
+}))
+
 # Administrative data #############################################################
 
 #Changing the name of administrative columns
@@ -28,15 +47,14 @@ menage <- menage %>% select(c(-hh3, -hh2, -hh6, -hh6a,
                               -hh5aa, -hh11hh, -hh11mn,
                               -hh46_autre, -hhaux,
                               -hh47, -hh56hh, -hh56mn,
-                              -finhh, -fs6ay, -fs6az, -uf26x
+                              -finhh, -fs6ay, -fs6az, -uf26x, -uf26
                               ))
 
 ## Remove "Specify other" / aggregate of 'check all' questions
 menage <- menage %>% select(-contains(c("autre", "nr")),-ws6, -st4, -uf3, -fs6a, -fs5b, -tn18b)
-  unique(menage$fs9)
-##Rename Administrative info
-detach("package:plyr", unload=TRUE)
 
+##Rename Administrative info
+#detach("package:plyr", unload=TRUE)
 menage <- menage %>% rename(village_code = hh1,
                             village_name = hh1a,
                             reserve_section = hhstrate,
@@ -48,45 +66,76 @@ menage <- menage %>% rename(village_code = hh1,
                             women15T49_c = hh53,
                             children_U5_c = hh55) %>%
   mutate(hc10 = ifelse(hc10 > 95, NA, hc10),
-         hc11 = ifelse(hc11 > 998, NA, hc11)) %>%
+         hc11 = ifelse(hc11 > 998, NA, hc11)) 
+
+
   ##make boolean
-  mutate_at(.vars=c("hc13", "hc14a", "hc14b", 
-                    "hc7","fs1", "fs2", "fs3", 
-                    "fs4", "fs7a", "fs7b", "fs7x", 
-                    "uf1", "uf10", "uf12", 
-                    "uf27", "uf28", "fs11", "hc16", "st6a", "st6b", "st6c",
-                    "uf17"),
+menage <- menage %>% 
+  mutate_at(.vars=c("permission", "hc6a",
+            "hc6b", "hc6c", "hc6d", "hc6e",
+            "hc6f", "hc6g", "hc6h", "hc6i",
+            "hc6j", "hc6k", "hc6l", "hc8",
+            "hc12a", "hc12b", "hc12c", "hc12d",
+            "hc12e", "hc12x", "hc21", "hc22a",
+            "hc22b", "hc22c", "hc22d", "hc22e", "hc22f",
+            "hc22g", "hc22h", "hc24", "hc26", "hc27",
+            "ws5", "uf13",
+            "tn1", "tn17a", "tn17b",
+            "tn17c", "tn17x", "tn18a", "st1", "st2",
+            "st3", "st5", "st6a", "st6b", "st6c", 
+            "st7", "st8a", "st8b", "st8c", "st8x",
+            "fs5a", "fs8", "fs10", "uf2a", "uf2b",
+            "uf2c", "uf6a", "uf6b", "uf6c", "uf6d",
+            "uf6e", "uf6f", "uf6g", "uf6h", "uf6i",
+            "uf6j", "uf6x", "uf14a", "uf14b", "uf14c",
+            "uf14d", "uf14e", "uf14f", "uf14g", "uf14h",
+            "uf14i", "uf14j", "uf14k", "uf14l", "uf14x",
+            "uf15", "uf16a", "uf16b", "uf16c", "uf16d",
+            "uf16e", "uf16f", "uf16x", "uf17", "uf18",
+            "uf19a", "uf19b", "uf19c", "uf19d", "uf19e",
+            "uf19f", "uf19x", "uf20", "uf21a", "uf21b",
+            "uf21c", "uf21d", "uf21e", "uf21f", "uf22",
+            "uf23a", "uf23b", "uf23c", "uf23d", "uf23e",
+            "uf23x", "uf24a", "uf24b", "uf24c", "uf24d",
+            "uf24e", "uf24x", "uf25",
+            "hc13", "hc14a", "hc14b", 
+            "hc7","fs1", "fs2", "fs3", 
+            "fs4", "fs7a", "fs7b", "fs7x", 
+            "uf1", "uf10", "uf12", 
+            "uf27", "uf28", "fs11", "hc16", "st6a", "st6b", "st6c",
+            "uf17"),
             ~case_when(
-              . == "OUI, TRES MENACE" ~ TRUE,
-              . == "OUI, PEU MENACE" ~ TRUE,
-              . == "Sometimes" ~ TRUE,
-              . == "TRADITIONNEL" ~ TRUE,
+              . == "OUI TRES MENACE" ~ TRUE,
+              . == "OUI PEU MENACE" ~ TRUE,
+              . == "SOMETIMES" ~ TRUE,
+              . == "OUI PARFOIS" ~ TRUE,
+              . == "OUI SOUVENTTRES" ~ TRUE,
+              . == "OUI QUELQUEFOISUN PEU" ~ TRUE,
+              . == "NONJAMAIS" ~ FALSE,
               . == "MODERNE" ~ FALSE,
-              . == "Oui, en dehors du reseau (Génerateur/panneau solaire/système isolé)" ~ TRUE,
-              . == "Oui, connecté au reseau public" ~ TRUE,
-              . == "Oui" ~ TRUE,
+              . == "OUI EN DEHORS DU RESEAU GÉNERATEURPANNEAU SOLAIRESYSTÈME ISOLÉ" ~ TRUE,
+              . == "OUI CONNECTÉ AU RESEAU PUBLIC" ~ TRUE,
+              . == "OUI QUELQUEFOISUN PEU" ~ TRUE,	
+              . == "OUI SOUVENT  TRES" ~ TRUE,
               . == "OUI" ~ TRUE,
               . == "NON" ~ FALSE,
-              . == "Non" ~ FALSE,
-              . == "No" ~ FALSE,
-              . == "Yes, Often" ~ TRUE,
-              . == "Yes, Sometimes" ~ TRUE,
-              . == "Yes, Rarely" ~ TRUE,
-              . == "No, Never" ~ TRUE,
-              . == "OUI, SOUVENT / TRES" ~ TRUE,
-              . == "Oui, rarement" ~ TRUE,
-              . == "OUI, QUELQUEFOIS/UN PEU"
-              . == "NON/JAMAIS" ~ FALSE,
-              . == "Pas Sure" ~ FALSE,
-              . == "Ne Sait Pas" ~ FALSE,
-              . == "Bonne" ~ TRUE,
-              . == "Mauvaise" ~ FALSE,
-              . == "Eat" ~ TRUE
-              . == "Treatment" ~ FALSE,
+              . == "OUI SOUVENT TRES" ~ TRUE,
+              . == "OUI SOUVENT" ~ TRUE,
+              . == "OUI RAREMENT" ~ TRUE,
+              . == "OUI QUELQUEFOIS" ~ TRUE,
+              . == "NON JAMAIS" ~ FALSE,
+              . == "PAS SURE" ~ NA,
+              . == "NE SAIT PAS" ~ NA,
+              . == "BONNE" ~ TRUE,
+              . == "MAUVAISE" ~ FALSE,
+              . == "EAT" ~ TRUE,
+              . == "TREATMENT" ~ FALSE,
               . == "NON REPONSE" ~ NA,
               TRUE ~ NA
-            ))  %>%
+            ))  
   ##when there is a letter TRUE else NA
+
+menage <- menage %>% 
   mutate_at(.vars = c("ws6a",
                       "ws6b",
                       "ws6c",
@@ -94,11 +143,11 @@ menage <- menage %>% rename(village_code = hh1,
                       "ws6e",
                       "ws6f",
                       "ws6x",
-                      "tn8ba",
-                      "tn8bb",
-                      "tn8bc",
-                      "tn8bd",
-                      "tn8bx",
+                      "tna8ba",
+                      "tn18bb",
+                      "tn18bc",
+                      "tn18bd",
+                      "tn18bx",
                       "st4a",
                       "st4b",
                       "st4c",
@@ -150,11 +199,8 @@ menage <- menage %>% rename(village_code = hh1,
             )) 
 
 
-###NEED TO COMPLETE: hc10, hc11, plug values for DK (ster_wanted_childs = ifelse(ster_wanted_childs > 90, NA, ster_wanted_childs))
-
 ## Change Completeness
 menage <- menage %>% mutate(completeness = ifelse(completeness == "Completé", TRUE, FALSE))
-menage <- menage %>% mutate(permission = ifelse(permission == "OUI", TRUE, FALSE))
 
 #####################################################################
 # Boolean ###########################################################
@@ -209,11 +255,11 @@ bool_questions = c("hc6a" , "percent", "Percentage of households who have a cell
                    'tn17b', 'percent', 'Percentage of households who use mosquito nets  to fish', 'Possession and Use of Mosquito Nets',
                    'tn17c', 'percent', 'Percentage of households who use mosquito nets to prevent poultry from going into the garden', 'Possession and Use of Mosquito Nets',
                    'tn17a', 'percent', 'Percentage of households who use mosquito nets to for other reasons', 'Possession and Use of Mosquito Nets',
-                   'tn18ba', 'percent', 'Percentage of households who avoid mosquitos using spray', 'Possession and Use of Mosquito Nets',
+                   'tna8ba', 'percent', 'Percentage of households who avoid mosquitos using spray', 'Possession and Use of Mosquito Nets',
                    'tn18bb', 'percent', 'Percentage of households who avoid mosquitos by removing puddles', 'Possession and Use of Mosquito Nets',
                    'tn18bc', 'percent', 'Percentage of households who avoid mosquitos by removing bushes of mosquitos', 'Possession and Use of Mosquito Nets',
                    'tn18bd', 'percent', 'Percentage of households who avoid mosquitos using repellants', 'Possession and Use of Mosquito Nets',
-                   'tn18be', 'percent', 'Percentage of households who avoid mosquitos using other methods', 'Possession and Use of Mosquito Nets',
+              #     'tn18be', 'percent', 'Percentage of households who avoid mosquitos using other methods', 'Possession and Use of Mosquito Nets',
                    'st1', 'percent', 'Percentage of households who had diarrhea in the last three months', 'Health Care and Treatment',
                    'st2', 'percent', 'Percentage of households who had a fever in the last three months', 'Health Care and Treatment',
                    'st3', 'percent', 'Percentage of households who had a cough in the last three months', 'Health Care and Treatment',
@@ -360,9 +406,10 @@ bool_type <- function(df, col){
   return(df)
 }
 
+menage$village_code <- as.factor(menage$village_code) # Convert character column to factor
 #Apply the bool_type function to each column in bool_questions        
 bool_df <- apply(bool_questions, 1, function(x){
-  bool_type(tableau_de_menage, x[1]) %>%
+  bool_type(menage, x[1]) %>%
     mutate(question = x[3],
            topic = x[4])
 })
