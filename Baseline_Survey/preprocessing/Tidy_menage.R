@@ -87,7 +87,9 @@ menage <- menage %>%
             "fs5a", "fs8", "fs10", "uf2a", "uf2b",
             "uf2c", "uf6a", "uf6b", "uf6c", "uf6d",
             "uf6e", "uf6f", "uf6g", "uf6h", "uf6i",
-            "uf6j", "uf6x", "uf14a", "uf14b", "uf14c",
+            "uf6j", "uf6x", "uf9a", "uf9b", "uf9c",
+            "uf9d", "uf9e", "uf9x",
+            "uf14a", "uf14b", "uf14c",
             "uf14d", "uf14e", "uf14f", "uf14g", "uf14h",
             "uf14i", "uf14j", "uf14k", "uf14l", "uf14x",
             "uf15", "uf16a", "uf16b", "uf16c", "uf16d",
@@ -406,7 +408,8 @@ bool_type <- function(df, col){
   return(df)
 }
 
-menage$village_code <- as.factor(menage$village_code) # Convert character column to factor
+#menage$village_code <- as.factor(menage$village_code) # Convert character column to factor
+
 #Apply the bool_type function to each column in bool_questions        
 bool_df <- apply(bool_questions, 1, function(x){
   bool_type(menage, x[1]) %>%
@@ -425,7 +428,7 @@ bool_df <- bind_rows(bool_df) %>%
 #Columns need to be numerical
 #NA means no response (be careful because some NA need to be change to 0)
 
-avg_questions = c("h48", "Average number of household members", "Household characteristics",
+avg_questions = c("household_members", "Average number of household members", "Household characteristics",
                   "hc10", "Average hectares of land", "Household characteristics",
                   "hc11", "Average hectare used for agriculture", "Household characteristics",
                   "hc15a", "Average months to grow irrigated rice", "Household characteristics",
@@ -442,7 +445,7 @@ avg_questions = c("h48", "Average number of household members", "Household chara
                   "hc29", "Average total income in the last twelve months", "Household characteristics",
                   "ws4", "Average time to go to water source and return", "Water and Sanitation",
                   "tn2", "Average number of mosquito nets", "Possession and Use of Mosquito Nets",
-                  "fs6b", "Average number of months without rice in meals", "Food supply",
+                  "fs6b", "Average number of months without rice in meals", "Food supply"
                   )
 avg_questions = matrix(avg_questions, ncol = 3, byrow = TRUE)
 
@@ -450,7 +453,7 @@ avg_questions = as.data.frame(avg_questions)
 names(avg_questions) <- c("variable", "question", "topic")
 
 #Calculating the total column
-avg_df_total <- nenage %>% 
+avg_df_total <- menage %>% 
   select(village_code, avg_questions[,1]) %>%
   group_by(village_code) %>%
   summarise_all(~sum(!is.na(.))) %>%
@@ -462,6 +465,7 @@ avg_df_avg <- menage %>%
   group_by(village_code) %>%
   summarise_all(~mean(., na.rm = TRUE)) %>%
   gather(key = "variable", value = "value", -village_code)
+
 
 #Join the two dataframes
 avg_df <- avg_df_avg %>% left_join(avg_df_total, by = c("village_code", "variable")) %>%
@@ -480,18 +484,18 @@ avg_df <- avg_df_avg %>% left_join(avg_df_total, by = c("village_code", "variabl
 
 menage <- menage %>%
   mutate(
-         hc1 = ifelse(hc1 %in% c("NSP", "Non reponse"), NA_character_, as.character(hc1)),
+         hc1 = ifelse(hc1 %in% c("NSP", "NON RESPONSE"), NA_character_, as.character(hc1)),
          hc1 = fct_recode(hc1,
                             "Mat" = "NATTE",
-                            "Bamboo" = "PALME / BAMBOU",
+                            "Bamboo" = "PALME  BAMBOU",
                             "Ceramic Tiles" = "CARRELAGE EN CERAMIQUE",
-                            "Earth / Sand" = "TERRE / SABLE",
+                            "Earth  Sand" = "TERRE  SABLE",
                             "Wood Planks" = "PLANCHES DE BOIS",
                           "Polished Wood" = 'PARQUET EN BOIS OU BOIS POLI',
                           'Dung' = "BOUSE",
                           "Cement"= "CIMENT",
                           "Vinyl or Asphalt Strips" = 'BANDES DE VINYLE OU D?ASPHALTE',
-                          'Carpet or Rug' = 'MOQUETTE / TAPIS'),
+                          'Carpet or Rug' = 'MOQUETTE  TAPIS'),
          hc1 = factor(hc1, levels = c("Mat",
                                           "Bamboo",
                                           "Ceramic Tiles",
@@ -505,27 +509,27 @@ menage <- menage %>%
          hc2 = ifelse(hc2 == "NON REPONSE", NA_character_, as.character(hc2)),
          hc2 = fct_recode(hc2,
                           "Mat" = "NATTE",
-                          "Bamboo" = "CHAUME / FEUILLE DE PALME PALMIER / BAMBOU / ZOZORO",
+                          "Bamboo" = "CHAUME  FEUILLE DE PALME PALMIER  BAMBOU  ZOZORO",
                           "Grass" = "MOTTES D'HERBES",
                           "Wood Planks" = "PLANCHES DE BOIS",
-                          "Metal or Aluminium" = "TOLE / METAL / ALUMINIUM",
+                          "Metal or Aluminium" = "TOLE  METAL  ALUMINIUM",
                           "No Roof" = "PAS DE TOIT"),
          hc2 = factor(hc2, levels = c("Mat", "Bamboo", "Grass", 
                                       "Wood Planks", "Metal or Aluminium", "No Roof")),
          hc3 = ifelse(hc3 == "NON REPONSE", NA_character_, as.character(hc3)),
          hc3 = fct_recode(hc3,
-                          "Bamboo" = "CANE / PALME / TRONCS / ZOZORO",
+                          "Bamboo" = "CANE  PALME  TRONCS  ZOZORO",
                           "No wall" = "PAS DE MURS",
                           "Plates" = "CONTRE PLAQUE",
                           "Mud" = "BOUE",
-                          "Wood Planks" = "PLANCHES DE BOIS/BARDEUX",
-                          "Uncovered Adobe" = "ADOBE NON RECOUVERT/BANCO",
+                          "Wood Planks" = "PLANCHES DE BOISBARDEUX",
+                          "Uncovered Adobe" = "ADOBE NON RECOUVERTBANCO",
                           "Other" = "AUTRE"),
          hc3 = factor(hc3, levels = c("Bamboo", "No wall", "Plates", "Mud", "Wood Planks",
                                       "Uncovered Adobe", "Other")),
          hc4a = ifelse(hc4a == "NON REPONSE", NA_character_, as.character(hc4a)),
          hc4a = fct_recode(hc4a,
-                           "Open fire" = "Feu sur Trois pierres / feu ouvert",
+                           "Open fire" = "Feu sur Trois pierres  feu ouvert",
                            "Traditional solid fuel stove" = "Cuisiniere traditionnelle a combustible solide",
                            "Solar cooker" = "Cuisiniere solaire",
                            "Solid Fuel Stove" = "Cuisiniere a combustible solide",
@@ -540,21 +544,21 @@ menage <- menage %>%
                            "Wood" = "BOIS",
                            "Biomass" = "BIOMASS MANUFACTUREE (GRANULES) OU COPEAUX DE BOIS",
                            "Charcoal" = "CHARBON DE BOIS",
-                           "Animal Waste" = "BOUSE D?ANIMAUX / DECHETS",
-                           "Grass" = "RESIDUS AGRICOLES / HERBES/ PAILLES/ ARBUSTES",
-                           "Diesel" = "ESSENCE / DIESEL",
-                           "Alcohol" = "ALCOOL / ETHANOL",
-                           "Petroleum" = "PETROLE / PARAFFINE"),
+                           "Animal Waste" = "BOUSE D?ANIMAUX  DECHETS",
+                           "Grass" = "RESIDUS AGRICOLES  HERBES PAILLES ARBUSTES",
+                           "Diesel" = "ESSENCE  DIESEL",
+                           "Alcohol" = "ALCOOL  ETHANOL",
+                           "Petroleum" = "PETROLE  PARAFFINE"),
          hc4b = factor(hc4b, levels = c("Wood", "Biomass", "Charcoal",
                                         "Animal Waste", "Grass", "Diesel",
                                         "Alcohol", "Petroleum")),
          hc5 = ifelse(hc5 == "NON REPONSE", NA_character_, as.character(hc5)),
          hc5 = fct_recode(hc5, 
-                          "In a non separate room in the main house" = "DANS LA MAISON PRINCIPALE : DANS UNE PIECE NON SEPAREE",
-                          "In a separate room in the main house" = "DANS LA MAISON PRINCIPALE : DANS UNE PIECE SEPARE",
+                          "In a non separate room in the main house" = "DANS LA MAISON PRINCIPALE  DANS UNE PIECE NON SEPAREE",
+                          "In a separate room in the main house" = "DANS LA MAISON PRINCIPALE  DANS UNE PIECE SEPARE",
                           "In a separate building" = "DANS UN BATIMENT SEPARE",
-                          "Outside on a veranda or a covered porch" = "DEHORS : SUR UNE VERANDA OU UN PORCHE COUVERT",
-                          "Outdoors" = "DEHORS: A LAIR LIBRE"),
+                          "Outside on a veranda or a covered porch" = "DEHORS  SUR UNE VERANDA OU UN PORCHE COUVERT",
+                          "Outdoors" = "DEHORS A LAIR LIBRE"),
          hc5 = factor(hc5, levels = c("In a non separate room in the main house",
                                       "In a separate room in the main house",
                                       "In a separate building",
@@ -579,10 +583,10 @@ menage <- menage %>%
                            "Sell firewood" =  "VENTE DE BOIS DE CHAUFFAGE",
                            "Sell charcoal" =  "VENTE DE CHARBON DEBOIS",
                            "Sell fish" = "VENTE DE POISSON",
-                           "Sell ravinala or thatch" = 'VENTE DE RAVINALA / CHAUME',
-                           "Sell agricultural products" = "VENTE DE PRODUITS AGRICOLES (MANIOC, TUBERCULES, PAR EXEMPLE)",
-                           "Sell crops"= "VENTE DE CULTURES DE RENTE (CAFÉ, VANILLE, CLOU DE GIROFLE, PAR EXEMPLE)",
-                           "Sell prepared meals"= "VENTE DE PLATS PRÉPARÉS  (PLATS FRITS / GÂTEAUX DE POISSON PAR EXEMPLE)"),
+                           "Sell ravinala or thatch" = 'VENTE DE RAVINALA  CHAUME',
+                           "Sell agricultural products" = "VENTE DE PRODUITS AGRICOLES MANIOC TUBERCULES PAR EXEMPLE",
+                           "Sell crops"= "VENTE DE CULTURES DE RENTE CAFÉ VANILLE, CLOU DE GIROFLE PAR EXEMPLE",
+                           "Sell prepared meals"= "VENTE DE PLATS PRÉPARÉS  PLATS FRITS  GÂTEAUX DE POISSON PAR EXEMPLE"),
          hc28 = factor(hc28, levels = c("Other", "Employed", "No income",
                                         "Small Business Owner", "Sell honey",
                                         "Sell crafts", "Sell wood",
@@ -592,17 +596,17 @@ menage <- menage %>%
                                         "Sell crops", "Sell prepared meals")),
          ws1 = ifelse(ws1 == "NON REPONSE", NA_character_, as.character(ws1)),
          ws1 = fct_recode(ws1, 
-                          "unprotected source" = 'SOURCE: SOURCE NON PROTEGEE',
-                          'protected source' = "SOURCE: SOURCE PROTEGEE",
-                          'Surface water' = "EAU DE SURFACE (RIVIERE, BARRAGE, LAC, MARE, COURANT, CANAL, SYSTEME D?IRRIGATION)",
-                          'Protected hollow well' =  'PUITS CREUSE: PAS PROTEGE',
-                          "Unprotected hollow well" =  'PUITS CREUSE: PAS PROTEGE',
-                          'Conditioned bottled water' = 'EAU CONDITIONNEE: EAU EN BOUTEILLE',
-                          'Hollow well' = 'PUITS CREUSE: PROTEGE',
-                          'Tap in the garden' = 'ROBINET: DANS LA CONCESSION/JARDIN/ PARCELLE',
-                          'Tap in the housing' = 'ROBINET: DANS LE LOGEMENT',
-                          'Public tap or fountain terminal' = 'ROBINET: ROBINET PUBLIC/BORNE FONTAINE',
-                          'Pump or drilling wells' ='PUITS A POMPE/FORAGE'),
+                          "unprotected source" = 'SOURCE SOURCE NON PROTEGEE',
+                          'protected source' = "SOURCE SOURCE PROTEGEE",
+                          'Surface water' = "EAU DE SURFACE RIVIERE BARRAGE LAC MARE COURANT CANAL SYSTEME D?IRRIGATION",
+                          'Protected hollow well' =  'PUITS CREUSE PAS PROTEGE',
+                          "Unprotected hollow well" =  'PUITS CREUSE PAS PROTEGE',
+                          'Conditioned bottled water' = 'EAU CONDITIONNEE EAU EN BOUTEILLE',
+                          'Hollow well' = 'PUITS CREUSE PROTEGE',
+                          'Tap in the garden' = 'ROBINET DANS LA CONCESSIONJARDIN PARCELLE',
+                          'Tap in the housing' = 'ROBINET DANS LE LOGEMENT',
+                          'Public tap or fountain terminal' = 'ROBINET ROBINET PUBLICBORNE FONTAINE',
+                          'Pump or drilling wells' ='PUITS A POMPEFORAGE'),
          ws1 = factor(ws1, levels = c("unprotected source", "protected source",
                                        "Surface water", "Protected hollow well",
                                        "Unprotected hollow well", "Conditioned bottled water",
@@ -615,14 +619,14 @@ menage <- menage %>%
          ws7 = factor(ws7, levels = c("Livestock", "Goods owned by household", "Land")),
          fs9 = ifelse(fs9 == "NON REPONSE", NA_character_, as.character(fs9)),
          fs9 = fct_recode(fs9,
-                          "Nature" = 'PAS DE TOILETTES/ NATURE/CHAMPS',
-                          'Open pit' = 'LATRINE A FOSSE : LATRINE A FOSSE SANS DALLE/FOSSE OUVERTE',
-                          'non washable slab' = 'LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE NON LAVABLE',
-                          'washable slab' = 'LATRINE A FOSSE : LATRINE A FOSSE AVEC DALLE LAVABLE',
+                          "Nature" = 'PAS DE TOILETTES NATURECHAMPS',
+                          'Open pit' = 'LATRINE A FOSSE  LATRINE A FOSSE SANS DALLEFOSSE OUVERTE',
+                          'non washable slab' = 'LATRINE A FOSSE  LATRINE A FOSSE AVEC DALLE NON LAVABLE',
+                          'washable slab' = 'LATRINE A FOSSE  LATRINE A FOSSE AVEC DALLE LAVABLE',
                           'Other' =  'AUTRE',
-                          'Suspended toilets' = 'TOILETTES SUSPENDUES/LATRINES SUSPENDUES',
-                          'Water flush connected to latrines' =  'CHASSE D?EAU : RELIE AUX LATRINES',
-                          'Water flush connected to free air' = "CHASSE D?EAU : RELIE A L'AIR LIBRE"),
+                          'Suspended toilets' = 'TOILETTES SUSPENDUESLATRINES SUSPENDUES',
+                          'Water flush connected to latrines' =  'CHASSE D?EAU  RELIE AUX LATRINES',
+                          'Water flush connected to free air' = "CHASSE D?EAU  RELIE A L'AIR LIBRE"),
          fs9 = factor(fs9, levels = c("Nature", "Open pit", 
                                       "non washable slab", "washable slab",
                                       "Other", "Suspended toilets", "Water flush connected to latrines",
@@ -652,8 +656,8 @@ menage <- menage %>%
          uf8 = factor(uf8,levels = c("Smoking the bees", "Harvesting from trees")),
          uf11 = ifelse(uf11 == "NE SAIT PAS", NA_character_, as.character(uf11)),
          uf11 = fct_recode(uf11,
-                           "Parcel II" = "PARCELLE II LITTORALE DE LA RESERVE SPECIALE / STRICTE",
-                           "Parcel I" = "PARCELLE I DE LA RESERVE SPECIALE / STRICTE",
+                           "Parcel II" = "PARCELLE II LITTORALE DE LA RESERVE SPECIALE  STRICTE",
+                           "Parcel I" = "PARCELLE I DE LA RESERVE SPECIALE  STRICTE",
                            "Special Reserve"= "FORET CLASSEE"),
          uf11 = factor(uf11, levels = c("Parcel II", "Parcel I", "Special Reserve")),
          uf18 = ifelse(uf18 == "NON REPONSE", NA_character_, as.character(uf18)),
@@ -662,7 +666,7 @@ menage <- menage %>%
                            "Bush fires" = "FEUX DE BROUSSES",
                            "Other" = "AUTRE",
                            "Hunt" = "CHASSE",
-                           "Agriculture" = "AGRICULTURE SUR BRULIS / TAVY",
+                           "Agriculture" = "AGRICULTURE SUR BRULIS  TAVY",
                            "Charcoal Manufacturing" = "FABRICATION DU CHARBON DE BOIS",
                            "Wet Rice Agriculture" = "AGRICULTURE DE RIZ HUMIDE"),
          uf18 = factor(uf18, levels = c("Cutting Trees", "Bush fires", "Other", "Hunt", 
