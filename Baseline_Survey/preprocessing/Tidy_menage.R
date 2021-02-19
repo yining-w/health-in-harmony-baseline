@@ -447,6 +447,15 @@ avg_questions = c("household_members", "Average number of household members", "H
                   "tn2", "Average number of mosquito nets", "Possession and Use of Mosquito Nets",
                   "fs6b", "Average number of months without rice in meals", "Food supply"
                   )
+
+menage_avg_cols = c("hc10", "hc11", "hc15a", "hc15b", "hc20a", "hc20b", "hc20c",
+                    "hc20d", "hc20e", "hc20f", "hc20g", "hc20x", "hc23", "hc29",
+                    "ws4", "tn2", "fs6b")
+
+menage_test = menage
+menage_test[menage_avg_cols] <- sapply(menage_test[menage_avg_cols], as.numeric)
+  menage %>% as.numeric(c(hc10, hc11, hc15a, h15b, hc20a, hc20b, hc20c, hc20d, hc20e, hc20f, hc20g, hc20x, hc23, hc29,
+                                      ws4, tn2, fs6b))
 avg_questions = matrix(avg_questions, ncol = 3, byrow = TRUE)
 
 avg_questions = as.data.frame(avg_questions)
@@ -465,7 +474,7 @@ avg_df_avg <- menage %>%
   group_by(village_code) %>%
   summarise_all(~mean(., na.rm = TRUE)) %>%
   gather(key = "variable", value = "value", -village_code)
-
+warnings()
 
 #Join the two dataframes
 avg_df <- avg_df_avg %>% left_join(avg_df_total, by = c("village_code", "variable")) %>%
