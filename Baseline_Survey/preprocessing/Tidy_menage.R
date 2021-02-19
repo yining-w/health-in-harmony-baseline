@@ -450,12 +450,10 @@ avg_questions = c("household_members", "Average number of household members", "H
 
 menage_avg_cols = c("hc10", "hc11", "hc15a", "hc15b", "hc20a", "hc20b", "hc20c",
                     "hc20d", "hc20e", "hc20f", "hc20g", "hc20x", "hc23", "hc29",
-                    "ws4", "tn2", "fs6b")
+                    "ws4", "tn2", "fs6b", "household_members")
 
-menage_test = menage
-menage_test[menage_avg_cols] <- sapply(menage_test[menage_avg_cols], as.numeric)
-  menage %>% as.numeric(c(hc10, hc11, hc15a, h15b, hc20a, hc20b, hc20c, hc20d, hc20e, hc20f, hc20g, hc20x, hc23, hc29,
-                                      ws4, tn2, fs6b))
+menage[menage_avg_cols] <- sapply(menage[menage_avg_cols], as.numeric)
+
 avg_questions = matrix(avg_questions, ncol = 3, byrow = TRUE)
 
 avg_questions = as.data.frame(avg_questions)
@@ -474,7 +472,7 @@ avg_df_avg <- menage %>%
   group_by(village_code) %>%
   summarise_all(~mean(., na.rm = TRUE)) %>%
   gather(key = "variable", value = "value", -village_code)
-warnings()
+
 
 #Join the two dataframes
 avg_df <- avg_df_avg %>% left_join(avg_df_total, by = c("village_code", "variable")) %>%
@@ -490,7 +488,7 @@ avg_df <- avg_df_avg %>% left_join(avg_df_total, by = c("village_code", "variabl
 #Columns needs to factor, with all the levels
 #NA means no response
 #Matirx with the categorical questions in just one column
-
+menage = menage %>% select(-c(uf18)) ## all NAs
 menage <- menage %>%
   mutate(
          hc1 = ifelse(hc1 %in% c("NSP", "NON RESPONSE"), NA_character_, as.character(hc1)),
@@ -668,19 +666,9 @@ menage <- menage %>%
                            "Parcel II" = "PARCELLE II LITTORALE DE LA RESERVE SPECIALE  STRICTE",
                            "Parcel I" = "PARCELLE I DE LA RESERVE SPECIALE  STRICTE",
                            "Special Reserve"= "FORET CLASSEE"),
-         uf11 = factor(uf11, levels = c("Parcel II", "Parcel I", "Special Reserve")),
-         uf18 = ifelse(uf18 == "NON REPONSE", NA_character_, as.character(uf18)),
-         uf18 = fct_recode(uf18, 
-                           "Cutting Trees" = "COUPE DES ARBRES",
-                           "Bush fires" = "FEUX DE BROUSSES",
-                           "Other" = "AUTRE",
-                           "Hunt" = "CHASSE",
-                           "Agriculture" = "AGRICULTURE SUR BRULIS  TAVY",
-                           "Charcoal Manufacturing" = "FABRICATION DU CHARBON DE BOIS",
-                           "Wet Rice Agriculture" = "AGRICULTURE DE RIZ HUMIDE"),
-         uf18 = factor(uf18, levels = c("Cutting Trees", "Bush fires", "Other", "Hunt", 
-                                        "Agriculture", "Charcoal Manufacturing", "Wet Rice Agriculture")))
-         
+         uf11 = factor(uf11, levels = c("Parcel II", "Parcel I", "Special Reserve")))
+
+sapply(menage, class)
 ####################################################################################
 # Categorical several columns ######################################################
 ####################################################################################
@@ -798,16 +786,7 @@ cat_questions_xc = c("hc1", 1, "Mat", "Main Material of Floor" ,"Household Chara
                      #
                      "uf11", 15, "Parcel II", "Closest forest", "Forest use",
                      "uf11", 15, "Parcel I", "Closest forest", "Forest use",
-                     "uf11", 15, "Special Reserve", "Closest forest", "Forest use",
-                     #
-                     "uf18", 16, "Cutting Trees", "Main threat to forest", "Forest use",
-                     "uf18", 16, "Bush fires", "Main threat to forest", "Forest use",
-                     "uf18", 16, "Other", "Main threat to forest", "Forest use",
-                     "uf18", 16, "Hunt", "Main threat to forest", "Forest use",
-                     "uf18", 16, "Agriculture", "Main threat to forest", "Forest use",
-                     "uf18", 16, "Charcoal Manufacturing", "Main threat to forest", "Forest use",
-                     "uf18", 16, "Wet Rice Agriculture", "Main threat to forest", "Forest use",
-                     )
+                     "uf11", 15, "Special Reserve", "Closest forest", "Forest use")
 
 cat_questions_xc = matrix(cat_questions_xc , ncol = 5, byrow = TRUE)
 
@@ -824,10 +803,11 @@ for (i in 1:max(cat_questions_xc[,2])){
   variables_xc_other = variables[-variables_xc_other]
   
   #Computing the dataframe for the group
-  df <- femme %>% filter(completeness == "Complete") %>%
+  df <- menage %>% filter(completeness == TRUE) %>%
     select(village_code, {{variables}}) %>%
-    mutate(aux = rowSums(!is.na(.[,variables_xc_other]))) %>%
-    filter(aux > 0) %>%
+#    mutate(aux = rowSums(!is.na(.[,variables_xc_other]))) %>%
+#    filter(aux > 0) %>%
+#    select(-aux) %>%
     gather(key = "variable",
            value = "answer",
            na.rm = FALSE,
@@ -841,8 +821,6 @@ for (i in 1:max(cat_questions_xc[,2])){
   cat_xc_df[[i]]<-df
 }
 
-#From list to dataframe
-cat_xc_df <- bind_rows(cat_xc_df)
 
 #Change the question matrix to dataframe
 cat_questions_xc = as.data.frame(cat_questions_xc)
