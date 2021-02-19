@@ -841,5 +841,6 @@ saveRDS(df_cat, file = here("Baseline_Survey/preprocessing/menage_cat.rds"))
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
+df_num[1] = lapply(df_num[1], as.numeric)
 #Save it
 saveRDS(df_num, file = here("Baseline_Survey/preprocessing/menage_num.rds"))
