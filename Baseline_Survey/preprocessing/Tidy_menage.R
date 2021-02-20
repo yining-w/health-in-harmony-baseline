@@ -466,7 +466,7 @@ avg_df_total <- menage %>%
   summarise_all(~sum(!is.na(.))) %>%
   gather(key = "variable", value = "total", -village_code)
 
-#Calculating the average column
+#Calculating the average column==
 avg_df_avg <- menage %>% 
   select(village_code, avg_questions[,1]) %>%
   group_by(village_code) %>%
@@ -730,7 +730,7 @@ cat_1c_type <- function(df, col){
 
 #Apply the function cat_1c_type to each column
 cat_1c_df <- apply(cat_question_1c, 1, function(x){
-  cat_1c_type(menage_check, x[1]) %>%
+  cat_1c_type(menage, x[1]) %>%
     mutate(question = x[2],
            topic = x[3])
 })
@@ -744,7 +744,7 @@ cat_1c_df <- bind_rows(cat_1c_df) %>%
 #rbind both categorical dataframes
 df_cat <- rbind(cat_1c_df, cat_xc_df)
 #Save it
-saveRDS(df_cat, file = here("Baseline_Survey/preprocessing/menage_cat.rds"))
+saveRDS(cat_1c_df, file = here("Baseline_Survey/preprocessing/menage_cat.rds"))
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
