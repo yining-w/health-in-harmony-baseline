@@ -202,7 +202,7 @@ menage <- menage %>%
 
 
 ## Change Completeness
-menage <- menage %>% mutate(completeness = ifelse(completeness == "Completé", TRUE, FALSE))
+menage <- menage %>% mutate(completeness = ifelse(completeness == "Completé", "Complete", "Incomplete"))
 
 #####################################################################
 # Boolean ###########################################################
@@ -677,160 +677,67 @@ sapply(menage, class)
 
 #List with categorical questions that are in more than 1 column
 #The second column indicates to which group of question they belong
-cat_questions_xc = c("hc1", 1, "Mat", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Bamboo", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Ceramic Tiles", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Earth / Sand", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Polished wood", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Dung", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Cement", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Vinyl or Asphalt Strips", "Main Material of Floor" ,"Household Characteristics",
-                     "hc1", 1, "Carpet or Rug", "Main Material of Floor" ,"Household Characteristics",
-                     #
-                     "hc2", 2, "Mat", "Main Material of Roof" ,"Household Characteristics",
-                     "hc2", 2, "Bamboo", "Main Material of Roof" ,"Household Characteristics",
-                     "hc2", 2, "Grass", "Main Material of Roof" ,"Household Characteristics",
-                     "hc2", 2, "Wood Planks", "Main Material of Roof" ,"Household Characteristics",
-                     "hc2", 2, "Metal or Aluminium", "Main Material of Roof", "Household Characteristics",
-                     "hc2", 2, "No Roof", "Main Material of Roof", "Household Characteristics",
-                     #
-                     "hc3", 3, "Bamboo", "Main Material of Floor","Household Characteristics",
-                     "hc3", 3, "No wall", "Main Material of Floor" ,"Household Characteristics",
-                     "hc3", 3, "Plates",  "Main Material of Floor","Household Characteristics",
-                     "hc3", 3, "Mud",  "Main Material of Floor","Household Characteristics",
-                     "hc3", 3, "Wood Planks",  "Main Material of Floor","Household Characteristics",
-                     "hc3", 3, "Uncovered Adobe",  "Main Material of Floor","Household Characteristics",
-                     "hc3", 3, "Wood Planks",  "Main Material of Floor","Household Characteristics",
-                     #
-                     "hc4a", 4, "Open fire", "Main stove for cooking", "Household Characteristics",
-                     "hc4a", 4, "Traditional solid fuel stove", "Main stove for cooking", "Household Characteristics",
-                     "hc4a", 4, "Solar cooker", "Main stove for cooking", "Household Characteristics",
-                     "hc4a", 4, "Solid Fuel Stove", "Main stove for cooking", "Household Characteristics",
-                     "hc4a", 4, "No meal prepared", "Main stove for cooking", "Household Characteristics",
-                     "hc4a", 4, "Liquid Fuel Cooker", "Main stove for cooking", "Household Characteristics",
-                     "hc4a", 4, "Liquid Gas Cooker", "Main stove for cooking", "Household Characteristics",
-                     #
-                     "hc4b", 5, "Wood", "Type of energy for cooker", "Household Characteristics",
-                     "hc4b", 5, "Biomass", "Type of energy for cooker", "Household Characteristics",
-                     "hc4b", 5, "Charcoal", "Type of energy for cooker", "Household Characteristics",
-                     "hc4b", 5, "Animal Waste", "Type of energy for cooker", "Household Characteristics",
-                     "hc4b", 5, "Grass", "Type of energy for cooker", "Household Characteristics",
-                     "hc4b", 5, "Diesel", "Type of energy for cooker", "Household Characteristics",
-                     "hc4b", 5, "Alcohol", "Type of energy for cooker", "Household Characteristics",
-                     "hc4b", 5, "Petroleum", "Type of energy for cooker", "Household Characteristics",
-                     #
-                     "hc5", 6, "In a non separate room in the main house", "Cooking Location", "Household Characteristics",
-                     "hc5", 6, "In a separate room in the main house", "Cooking Location", "Household Characteristics",
-                     "hc5", 6, "In a separate building", "Cooking Location", "Household Characteristics",
-                     "hc5", 6, "Outside on a veranda or a covered porch", "Cooking Location", "Household Characteristics",
-                     "hc5", 6, "Outdoors", "Cooking Location", "Household Characteristics",
-                     #
-                     "hc9", 7, "No titles", "Land title", "Household Characteristics",
-                     "hc9", 7, "Partially titled","Land title", "Household Characteristics",
-                     "hc9", 7, "Totally titled","Land title", "Household Characteristics",
-                     #
-                     "hc28", 8, "Other","Main income","Household Characteristics",
-                     "hc28", 8, "Employed","Main income","Household Characteristics",
-                     "hc28", 8, "No income","Main income","Household Characteristics",
-                     "hc28", 8, "Small Business Owner","Main income","Household Characteristics",
-                     "hc28", 8, "Sell honey","Main income","Household Characteristics",
-                     "hc28", 8, "Sell crafts","Main income","Household Characteristics",
-                     "hc28", 8, "Sell wood","Main income","Household Characteristics",
-                     "hc28", 8, "Sell other forest products","Main income","Household Characteristics",
-                     "hc28", 8, "Sell firewood","Main income","Household Characteristics",
-                     "hc28", 8, "Sell charcoal","Main income","Household Characteristics",
-                     "hc28", 8, "Sell honey","Main income","Household Characteristics",
-                     "hc28", 8, "Sell fish","Main income","Household Characteristics",
-                     "hc28", 8, "Sell ravinala or thatch","Main income","Household Characteristics",
-                     "hc28", 8, "Sell agricultural products","Main income","Household Characteristics",
-                     "hc28", 8, "Sell crops","Main income","Household Characteristics",
-                     "hc28", 8, "Sell prepared meals","Main income","Household Characteristics",
-                     #
-                     "ws1", 9, "unprotected source","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "protected source","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "Surface water","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "Protected hollow well","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "Unprotected hollow well","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "Conditioned bottled water","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "Hollow well","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "Tap in the garden","Main source of drinking water","Water and Sanitation",
-                     "ws1", 9, "Tap in the housing","Main source of drinking water","Water and Sanitation",
-                     #
-                     "ws7", 10, "Nature", "Toilet Type", "Water and Sanitation",
-                     "ws7", 10, "Open pit", "Toilet Type", "Water and Sanitation",
-                     "ws7", 10, "non washable slab", "Toilet Type", "Water and Sanitation",
-                     "ws7", 10, "washable slab", "Toilet Type", "Water and Sanitation",
-                     "ws7", 10, "Other", "Toilet Type", "Water and Sanitation",
-                     "ws7", 10, "Suspended toilets", "Toilet Type", "Water and Sanitation",
-                     "ws7", 10, "Water flush connected to latrines", "Toilet Type", "Water and Sanitation",
-                     "ws7", 10, "Water flush connected to free air", "Toilet Type", "Water and Sanitation",
-                     #
-                     "fs9", 11, "Livestock", "Assets sold", "Food Supply",
-                     "fs9", 11, "Goods owned by household", "Assets sold", "Food Supply",
-                     "fs9", 11, "Land", "Assets sold", "Food Supply",
-                     #
-                     "uf4", 12, "Construction wood", "Main reason for cut", "Food supply",
-                     "uf4", 12, "Other", "Main reason for cut", "Food supply",
-                     "uf4", 12, "Pirogue Construction", "Main reason for cut", "Food supply",
-                     #
-                     "uf5", 13, "Smoking the Bees", "Main Honey collection method", "Food supply",
-                     "uf5", 13, "Harvesting from trees", "Main Honey collection method", "Food supply",
-                     #
-                     "uf7", 13, "Pirogue construction", "Other reasons for cut", "Food supply",
-                     "uf7", 13, "Firewood", "Other reasons for cut", "Food supply",
-                     "uf7", 13, "Charcoal", "Other reasons for cut", "Food supply",
-                     "uf7", 13, "Construction Wood", "Other reasons for cut", "Food supply",
-                     #
-                     "uf8", 14, "Smoking the Bees", "Other Honey collection method", "Food supply",
-                     "uf8", 14, "Harvesting from trees", "Other Honey collection method", "Food supply",
-                     #
-                     "uf11", 15, "Parcel II", "Closest forest", "Forest use",
-                     "uf11", 15, "Parcel I", "Closest forest", "Forest use",
-                     "uf11", 15, "Special Reserve", "Closest forest", "Forest use")
+cat_question_1c = c("hc1", "Main Material of Floor", "Household Characteristics",
+                    "hc2", "Main Material of Roof", "Household Characteristics",
+                    "hc3", "Main Material of Floor", "Household Characteristics",
+                    "hc4a", "Main stove for cooking", "Household Characteristics",
+                    "hc4b", "Type of energy for cooker", "Household Characteristics",
+                    "hc5", "Cooking Location", "Household Characteristics",
+                    "hc9", "Land title", "Household Characteristics",
+                    "hc28", "Main income", "Household Characteristics",
+                    "ws1", "Main source of drinking water", "Water and Sanitation",
+                    "ws7", "Toilet Type", "Water and Sanitation",
+                    "fs9", "Assets sold", "Food Supply",
+                    "uf4", "Main reason for cut", "Food supply",
+                    "uf5", "Main Honey collection method", "Food supply",
+                    "uf7", "Other reasons for cut", "Food supply",
+                    "uf8", "Other Honey collecetion method", "Food supply",
+                    "uf11", "Closest foreste", "Forest use"
+                    )
 
-cat_questions_xc = matrix(cat_questions_xc , ncol = 5, byrow = TRUE)
+menage_check = menage %>% select(c(hc1, hc2, hc3, hc4a, hc4b, hc5, hc9, hc28, ws1,
+                                   ws7, fs9, uf4, uf5, uf7, uf8, uf11, village_code,
+                                   completeness))
 
-#Empty list to store the results per group
-cat_xc_df <- list()
+menage_check = na.omit(menage_check)
 
-#Iteration in the groups
-for (i in 1:max(cat_questions_xc[,2])){
-  #Vector of variables names of this group
-  variables = cat_questions_xc[which(cat_questions_xc[,2] == as.character(i)),1]
-  #Vector of variables names, not including the "other" option
-  #"other" columns sometimes does not have NA where is needed 
-  variables_xc_other = grep("other", cat_questions_xc[which(cat_questions_xc[,2] == as.character(i)),1])
-  variables_xc_other = variables[-variables_xc_other]
+cat_question_1c = matrix(cat_question_1c , ncol = 3, byrow = TRUE)
+
+#Function to create the dataframe
+cat_1c_type <- function(df, col){
+  #Computes the sum and total per village and category
+  df_one <- df %>% filter(completeness == "Complete") %>%
+    select(village_code, {{col}}) %>%
+    filter_all(all_vars(!is.na(.))) %>%
+    group_by(village_code) %>%
+    mutate(total = n()) %>%
+    group_by_all() %>%
+    summarise(sum = n(),
+              total = mean(total)) %>%
+    rename(categories = {{col}})
   
-  #Computing the dataframe for the group
-  df <- menage %>% filter(completeness == TRUE) %>%
-    select(village_code, {{variables}}) %>%
-#    mutate(aux = rowSums(!is.na(.[,variables_xc_other]))) %>%
-#    filter(aux > 0) %>%
-#    select(-aux) %>%
-    gather(key = "variable",
-           value = "answer",
-           na.rm = FALSE,
-           -village_code) %>%
-    mutate(answer = ifelse(!is.na(answer), answer, FALSE)) %>%
-    group_by(village_code, variable) %>%
-    summarise(sum = sum(answer),
-              total = sum(!is.na(answer)))
+  #Firstly, creates a dataframe with all the combinations (village, category)
+  #and then it does the join with df_one
+  df <- crossing(df["village_code"], categories = levels(df[,col])) %>%
+    left_join(unique(df_one[,c("village_code", "total")], by = c("village_code")))  %>%
+    left_join(df_one[,c("village_code", "categories", "sum")],
+              by = c("village_code", "categories")) %>%
+    mutate(sum = ifelse(!is.na(sum), sum, 0),
+           total = ifelse(!is.na(total), total, 0))
   
-  #Store the dataframe in the list
-  cat_xc_df[[i]]<-df
+  return(df)
 }
 
-
-#Change the question matrix to dataframe
-cat_questions_xc = as.data.frame(cat_questions_xc)
-names(cat_questions_xc) <- c("variable","id","categories","question","topic")
-
-#Add info of the columns to the main dataframe
-cat_xc_df <- cat_xc_df %>% left_join(cat_questions_xc, by = "variable") %>%
-  select(-id, -variable) %>%
+#Apply the function cat_1c_type to each column
+cat_1c_df <- apply(cat_question_1c, 1, function(x){
+  cat_1c_type(menage_check, x[1]) %>%
+    mutate(question = x[2],
+           topic = x[3])
+})
+#rlang::last_error()
+#From listo to dataframe
+cat_1c_df <- bind_rows(cat_1c_df) %>%
   select(village_code, topic, question, categories, sum, total)
-
 ###################################################################################
 # Final changes ###################################################################
 ###################################################################################
@@ -841,6 +748,6 @@ saveRDS(df_cat, file = here("Baseline_Survey/preprocessing/menage_cat.rds"))
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
-df_num[1] = lapply(df_num[1], as.numeric)
+df_num[1] = flapply(df_num[1], as.numeric)
 #Save it
 saveRDS(df_num, file = here("Baseline_Survey/preprocessing/menage_num.rds"))
