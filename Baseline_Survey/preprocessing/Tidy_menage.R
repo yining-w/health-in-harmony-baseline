@@ -1,6 +1,7 @@
 library(tidyverse)
 library(dplyr)
 library(data.table)
+library(here)
 
 rm(list=ls())
 load(here("Baseline_Survey/data/MENAGE.RData"))
@@ -202,7 +203,7 @@ menage <- menage %>%
 
 
 ## Change Completeness
-menage <- menage %>% mutate(completeness = ifelse(completeness == "Completé", "Complete", "Incomplete"))
+menage <- menage %>% mutate(completeness = ifelse(completeness == "COMPLETÉ", "Complete", "Incomplete"))
 
 #####################################################################
 # Boolean ###########################################################
@@ -679,7 +680,7 @@ sapply(menage, class)
 #The second column indicates to which group of question they belong
 cat_question_1c = c("hc1", "Main Material of Floor", "Household Characteristics",
                     "hc2", "Main Material of Roof", "Household Characteristics",
-                    "hc3", "Main Material of Floor", "Household Characteristics",
+                    "hc3", "Main Material of Floor2", "Household Characteristics",
                     "hc4a", "Main stove for cooking", "Household Characteristics",
                     "hc4b", "Type of energy for cooker", "Household Characteristics",
                     "hc5", "Cooking Location", "Household Characteristics",
@@ -699,7 +700,7 @@ menage_check = menage %>% select(c(hc1, hc2, hc3, hc4a, hc4b, hc5, hc9, hc28, ws
                                    ws7, fs9, uf4, uf5, uf7, uf8, uf11, village_code,
                                    completeness))
 
-menage_check = na.omit(menage_check)
+#menage_check = na.omit(menage_check)
 
 cat_question_1c = matrix(cat_question_1c , ncol = 3, byrow = TRUE)
 
@@ -741,13 +742,12 @@ cat_1c_df <- bind_rows(cat_1c_df) %>%
 ###################################################################################
 # Final changes ###################################################################
 ###################################################################################
-#rbind both categorical dataframes
-df_cat <- rbind(cat_1c_df, cat_xc_df)
 #Save it
+cat_1c_df$village_code <- as.numeric(cat_1c_df$village_code)
 saveRDS(cat_1c_df, file = here("Baseline_Survey/preprocessing/menage_cat.rds"))
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
-df_num[1] = flapply(df_num[1], as.numeric)
+df_num$village_code <- as.numeric(df_num$village_code)
 #Save it
 saveRDS(df_num, file = here("Baseline_Survey/preprocessing/menage_num.rds"))
