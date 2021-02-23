@@ -15,7 +15,9 @@ library(sf)
 library(shinycssloaders)
 library(here)
 library(DT)
-source(here("Baseline_Survey/app report/global.R"))
+##source(here("Baseline_Survey/app report/global.R"))
+#source("global.R")/
+
 remove(list=ls())
 
 # Define UI ####################################################################
@@ -74,7 +76,7 @@ ui <-navbarPage(
             tabPanel("Baseline Survey Results", 
                      div(class = "outer",
                          tags$head(
-                             includeCSS(here("Baseline_Survey/app report/styles.css"))
+                             includeCSS("styles.css")
                          ),
                          
                      ##Leaflet map
