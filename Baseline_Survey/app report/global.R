@@ -17,12 +17,18 @@ library(shinycssloaders)
 load("gps.RData")
 
 #Transform GPS data into vector data
-gps<-st_as_sf(x=gps,
-              crs="+proj=longlat +datum=WGS84 +no_defs",
-              coords=c("gpslon", "gpslat")) %>%
-        rename(village_code = gps1,
+#lat = gps$gpslat
+#lon = gps$gpslon
+
+gps = gps %>% rename(village_code = gps1,
                village_name = gps1a,
                reserve_section = gpstrate)
+#gps<-st_as_sf(x=gps,
+#              crs="+proj=longlat +datum=WGS84 +no_defs",
+#              coords=c("gpslon", "gpslat")) %>%
+#        rename(village_code = gps1,
+#               village_name = gps1a,
+#               reserve_section = gpstrate)
 
 gps = gps %>% rename(
         hh_village_code = village_code
@@ -124,6 +130,8 @@ update_no_color_map <- function(map, session, gps_data){
                                  stroke = FALSE,
                                  fillOpacity = 0.5,
                                  label = ~village_name,
+                                 lng = ~gpslng, 
+                                 lat = ~gpslat,
                                  layerId = ~hh_village_code,
                                  labelOptions = labelOptions(noHide = T,
                                                              textOnly = TRUE,
