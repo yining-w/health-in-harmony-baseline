@@ -1,3 +1,4 @@
+### Libraries ######################################################################
 library(shiny)
 library(shinydashboard)
 library(callr)
@@ -12,70 +13,10 @@ library(rhandsontable)
 library(RColorBrewer)
 library(sf)
 library(shinycssloaders)
-#library(here)
+library(here)
+library(DT)
+source(here("Baseline_Survey/app report/global.R"))
 remove(list=ls())
-setwd("~/GitHub/health-in-harmony-baseline-/Baseline_Survey/preprocessing")
-#Loading coordinates #############################################################
-#load(here("Baseline_Survey/data/gps.RData"))
-#load(here("Baseline_Survey/preprocessing/menage_survey.csv"))
-#load(here("Baseline_Survey/preprocessing/moustiquaire_survey.csv"))
-data_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/data"
-css_folder = "~/GitHub/health-in-harmony-baseline-/Baseline_Survey/"
-    
-load(paste0(data_folder, "/gps.RData"))
-moustiquaire = read.csv("moustiquaire_survey.csv")
-moustiquaire = moustiquaire %>% select(-n)
-menage = read.csv("menage_survey.csv")
-
-survey = rbind(menage, moustiquaire)
-
-
-gps = gps %>% rename(
-    hh_village_code = gps1,
-    village_name = gps1a,
-    reserve_section = gpstrate,
-    lat = gpslat,
-    long = gpslon)
-
-
-###merging lat long with survey information
-merge = survey %>% left_join(gps)
-
-#Adding population
-#load(here("Baseline_Survey/data/MENAGE.RData"))
-#population <- menage %>% select(village_code = hh1, 
-#                         reserve_section = hhstrate, 
-#                         household_members = hh48) %>%
-#    group_by(village_code, reserve_section) %>%
-#    summarise(population = sum(household_members, na.rm = TRUE)) %>%
-#    select(village_code, population) 
-
-#gps <- gps %>% left_join(population)
-
-#We also need to add all the variables that are going to be on the map
-
-#Reading Survey #################################################################
-#Here we need to add all the tables that we are going to use on the plots
-#mosquito_1 <- readRDS(here("Baseline_Survey/data/mosquito_nets.rds"))
-
-mosquito_1 <- readRDS(paste0(data_folder, "/mosquito_nets.rds"))
-
-#This is only temp 
-topic <- c("HOUSING CHARACTERISTICS",
-           "SOCIO-DEMOGRAPHIC CHARACTERISTICS",
-           "HOUSING CHARACTERISTICS",
-           "POSSESSION AND USE OF MOSQUITO NETS",
-           "AGRICULTURE",
-           "FOREST USE",
-           "FOOD SECURITY",
-           "FERTILITY",
-           "CONTRACEPTION",
-           "CHILD MORTALITY",
-           "CHILD HEALTH",
-           "HEALTH CARE AND TREATMENT")
-
-##### Map Set up ######
-wardpal <- colorFactor(palette ='PuBuGn', domain=gps$gpstrate)
 
 # Define UI ####################################################################
 ui <-navbarPage(
@@ -133,11 +74,11 @@ ui <-navbarPage(
             tabPanel("Baseline Survey Results", 
                      div(class = "outer",
                          tags$head(
-                             includeCSS(paste0(css_folder, "/styles.css"))
+                             includeCSS(here("Baseline_Survey/app report/styles.css"))
                          ),
                          
                      ##Leaflet map
-                     leafletOutput("map", height = "750px"),    
+                     leafletOutput("mymap", height = "750px"),    
                          
                          #Filter panel
                          absolutePanel(
@@ -156,27 +97,25 @@ ui <-navbarPage(
                                  
                                  checkboxGroupInput(inputId="stratum",
                                              label="Stratum",
-                                             choices=levels(merge$reserve_section),
+                                             choices=levels(gps$reserve_section),
                                              selected=c("PARCELLE I",
                                                         "FORET CLASSEE",
                                                         "PARCELLE II/LITTORALE")
                                              ),
                                  
                                  hr(),
-                                 
+                                 #Dropdown lists
                                  h4("Survey"),
-                                 
-                                 selectInput(inputId="survey",
-                                             label="Survey",
-                                             choices=c("Select" = "", unique(merge$survey))),
-                                 conditionalPanel("input.survey",
-                                                  selectInput(inputId="topic",
-                                                label="topic",
-                                                choices=c("Select" = "", unique(merge$topic)))),
-                                 conditionalPanel("input.survey",
-                                                  selectInput(inputId="question",
-                                                         label="question",
-                                                         choices=c("Select" = "", unique(merge$Question))))
+                                 selectizeInput('topic', 
+                                                'Select Topic', 
+                                                choices = c("select" = "", 
+                                                            topic_options)),
+                                 selectizeInput('type', 
+                                                'Select Type', 
+                                                choices = c("select" = "", type_options)),
+                                 selectizeInput('question', 
+                                                'Select Question', 
+                                                choices = c("select" = "", question_options))
                          )),
                          
                          #Plot panel
@@ -193,16 +132,12 @@ ui <-navbarPage(
                          
                              h3("Use the gear icon to select map parameters"),
                              h4(tags$em("Click on a village for further details")),
-                             uiOutput("clear_district", align = "center"),
-                             uiOutput("district_result"),
-                             htmlOutput("all_india_text"),
-                             h5(strong("Given Parameters, Distribution of Districts with Respect to:"))
-                             )
-                        #     plotOutput("myhist", height = 120) #%>% 
-                             #    withSpinner(type = spinner_type, color = spinner_color),
-                             #h5(strong("Trend over Time for the Same Parameters:")),
-                             #plotOutput("line_plot", height = plot_height) %>% 
-                             #    withSpinner(type = spinner_type, color = spinner_color)
+                             
+                             textOutput("kpi_name"),
+                             uiOutput("table"),
+                             
+                             uiOutput("plot")
+                         )
                          )),
                          
                 
@@ -219,61 +154,175 @@ ui <-navbarPage(
                 
                 )
             )
-        
-        
-    
-    
-    
-# Define server ############################################################
+
 server <- function(input, output, session)  { 
-    
-    #Transforming the layer to reactive
-    gps_reactive <- reactive({
-        dplyr::filter(merge, merge$reserve_section==input$stratum)
-    })
-    
-    output$map <- renderLeaflet({
-            ##Base map
-            leaflet() %>%
-            addProviderTiles('CartoDB.Positron') %>%
-  
-        ##add points 
-            addCircleMarkers(data = gps_reactive(),
-                             #radius = ~population/25 + 5,
-                             lng = ~long,
-                             lat = ~lat,
-                             color=~wardpal(reserve_section),
-                             #stroke = FALSE,
-                             label = ~village_name
-            ) 
-    })
-
-    # Update drop down selection
-
-    observe({
-        survey <- if (is.null(input$survey)) character(0) else {
-            filter(merge, survey %in% input$survey) %>%
-                `$`('Topic') %>%
-                unique() %>%
-                sort()
-        }
-        stillSelected <- isolate(input$topic[input$topic %in% topic])
-        updateSelectizeInput(session, "topic", choices = topic,
-                             selected = stillSelected, server = TRUE) 
-    })
-    observe({
-        question <- if (is.null(input$survey)) character(0) else {
-            merge %>%
-                filter(survey %in% input$survey,
-                       is.null(input$topic) | topic %in% input$topic) %>%
-                `$`('topic') %>%
-                unique() %>%
-                sort()
-        }
-    stillSelected <- isolate(input$Question[input$Question %in% question])
-        updateSelectizeInput(session, "question", choices = question,
-                             selected = stillSelected, server = TRUE)
-    })
+# Dropdown lists ----------------------------------------------------------------------------
+        observeEvent(input$topic,{
+                type_choices <- get_type_options(questions, input$topic)
+                updateSelectInput(session, "type",
+                                  choices = c("select" = "", type_choices)
+                                  )
+                updateSelectInput(session, "question",
+                                  choices = c("select" = "")
+                )
+        })
+        
+        observeEvent(input$type,{
+                question_choices <- get_question_options(questions, input$topic, input$type)
+                updateSelectInput(session, "question",
+                                  choices = c("select" = "", question_choices)
+                )
+        })
+        
+# Dataframes --------------------------------------------------------------------------------        
+        # Reactive df, it only changes when stratum change
+        gps_reactive <- reactive({
+                gps %>% filter(reserve_section %in% input$stratum)
+        })
+        
+        #Reactive numeric df, changes when question is not null
+        num_df_reactive <- reactive({
+                create_num_dataframe(num_df, gps_reactive(), input$topic, input$type, input$question)
+        })
+        
+        #Reactive numeric df, changes when question is not null
+        cat_df_reactive <- reactive({
+                create_cat_dataframe(cat_df, gps_reactive(), input$topic, input$type, input$question)
+        })
+                
+# Map ---------------------------------------------------------------------------------------        
+        #Render base map without circles
+        output$mymap <- renderLeaflet({
+                draw_base_map("mymap", session)
+        })
+        
+        #Creating reacting variable to observe
+        toListen <- reactive({
+                list(input$question,input$stratum)    
+        })
+        
+        #If the question or stratum changes, update the map
+        observeEvent(
+                eventExpr = toListen(), {
+                        if(is.null(input$stratum)){
+                                draw_base_map("mymap", session)
+                        }
+                        else if(input$question != "" & input$type == "numeric"){
+                                update_color_map("mymap", session, num_df_reactive())
+                                print("color")
+                        }
+                        else {
+                                update_no_color_map("mymap", session, gps_reactive())
+                                print("nocolor")
+                        }
+                }
+        )
+        
+# Map click ---------------------------------------------------------------------------------
+        #Creating reactive variable to store click
+        rv <- reactiveValues(click = NULL)
+        
+        #Store click object when changed
+        observeEvent(input$mymap_marker_click, {
+                rv$click <- input$mymap_marker_click
+        })
+        
+        #If type change click is NULL
+        observeEvent(input$type, {
+                rv$click <- NULL
+        })
+        
+        #If topic change click is NULL
+        observeEvent(input$topic, {
+                rv$click <- NULL
+        })
+        
+        #Observe event to change left panel
+        observe({
+                #If click is null or there is no question do not show anything
+                if (is.null(rv$click) | input$question == ""){
+                        output$kpi_name <- NULL
+                        output$table <- NULL
+                        output$plot <- NULL
+                        
+                }
+                #If the village id clicked is not in the selection do not show anything
+                else if(!(rv$click$id %in% gps_reactive()$hh_village_code)){
+                        output$table <- NULL
+                        output$plot <- NULL
+                }
+                #If the type is numeric show the table and the plot
+                else if(input$type == "numeric"){
+                        village_id <- rv$click$id
+                        output$kpi_name <- renderText({input$question})
+                        
+                        #Create DT control
+                        output$table <- renderUI({
+                                DTOutput("summary_table")
+                        })
+                        #Render the table
+                        output$summary_table <-renderDT(
+                                DT::datatable(draw_num_table(num_df_reactive(),
+                                                             village_id),
+                                              rownames = FALSE, colnames = c("",""), filter = "none",
+                                              style = "bootstrap",
+                                              class = "compact",
+                                              options = list(
+                                                      dom = 'b', ordering = FALSE)) %>%
+                                        formatStyle(
+                                                'col_name',
+                                                target = "row",
+                                                color = styleEqual(
+                                                        c("Area value",
+                                                          "Village value"),
+                                                        c("#56B4E9",
+                                                          "#E69F00")
+                                                        )
+                                                )
+                                )
+                        
+                        #Create plot control
+                        output$plot <- renderUI({
+                                plotOutput("num_histogram", height = 150)
+                        })
+                        #Render the plot
+                        output$num_histogram<- renderPlot({
+                                create_num_histogram(num_df_reactive(),village_id)
+                                })
+                        
+                        
+                }
+                #If the type is categorical show the table and the plot
+                else if(input$type == "categorical"){
+                        village_id <- rv$click$id
+                        output$kpi_name <- renderText({input$question})
+                        
+                        #Create DT control
+                        output$table <- renderUI({
+                                DTOutput("summary_table")
+                        })
+                        #Render DT
+                        output$summary_table <-renderDT(
+                                DT::datatable(draw_cat_table(cat_df_reactive(),
+                                                             village_id,
+                                                             gps_reactive()),
+                                              rownames = FALSE, colnames = c("",""), filter = "none",
+                                              style = "bootstrap",
+                                              class = "compact",
+                                              options = list(
+                                                      dom = 'b', ordering = FALSE))
+                        )
+                        
+                        #Create plot control
+                        output$plot <- renderUI({
+                                plotOutput("cat_plot", height = 300)
+                        })
+                        #Render plot
+                        output$cat_plot<-renderPlot({
+                                create_cat_plot(cat_df_reactive(),village_id)
+                        })
+                }
+        })
     }
 
 # Run the application 

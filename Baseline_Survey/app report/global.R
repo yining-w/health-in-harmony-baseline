@@ -15,7 +15,7 @@ library(shinycssloaders)
 library(here)
 
 # Loading coordinates ---------------------------------------------------------------------
-load(here("Baseline_Survey/data/gps.RData"))
+load(here("Baseline_Survey/data/GPSnew.RData"))
 
 #Transform GPS data into vector data
 gps<-st_as_sf(x=gps,
@@ -112,7 +112,7 @@ draw_base_map <-function(map, session){
         leaflet(
                 options = leafletOptions(minZoom = 12, maxZoom = 14)
         ) %>%
-                setMaxBounds(lng1 = 47.393221, lat1 = -23.185126, lng2 = 47.822476, lat2 = -22.870085) %>%
+                setMaxBounds(lng1 = 47.493221, lat1 = -23.235126, lng2 = 47.922476, lat2 = -22.920085) %>%
                 addProviderTiles('CartoDB.Positron') %>%
                 addResetMapButton()
 }
