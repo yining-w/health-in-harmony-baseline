@@ -4,7 +4,7 @@ library(data.table)
 library(here)
 
 rm(list=ls())
-load(here("Baseline_Survey/data/MENAGE.RData"))
+load("../data/MENAGE.RData")
 
 # Remote White Space ########################
 dfList <- list(menage)
@@ -744,10 +744,10 @@ cat_1c_df <- bind_rows(cat_1c_df) %>%
 ###################################################################################
 #Save it
 cat_1c_df$village_code <- as.numeric(cat_1c_df$village_code)
-saveRDS(cat_1c_df, file = here("Baseline_Survey/preprocessing/menage_cat.rds"))
+saveRDS(cat_1c_df, file = "../madagascar_app/data/menage_cat.rds")
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
 df_num$village_code <- as.numeric(df_num$village_code)
 #Save it
-saveRDS(df_num, file = here("Baseline_Survey/preprocessing/menage_num.rds"))
+saveRDS(df_num, file = "../madagascar_app/data/menage_num.rds")

@@ -1,7 +1,7 @@
 library(tidyverse)
 library(here)
 rm(list=ls())
-load(here("Baseline_Survey/data/enfant.RData"))
+load("../data/enfant.RData")
 
 
 #Changing the name of administrative columns
@@ -276,8 +276,8 @@ cat_xc_df <- cat_xc_df %>% left_join(cat_questions_xc, by = "variable") %>%
 
 #Bolean 
 #Save it
-saveRDS(bool_df, file = here("Baseline_Survey/preprocessing/enfant_num.rds"))
+saveRDS(bool_df, file = "../madagascar_app/data/enfant_num.rds")
 
 #Categorical
 #Save it
-saveRDS(cat_xc_df, file = here("Baseline_Survey/preprocessing/enfant_cat.rds"))
+saveRDS(cat_xc_df, file = "../madagascar_app/data/enfant_cat.rds")

@@ -2,7 +2,7 @@ library(tidyverse)
 library(fastDummies)
 library(here)
 rm(list=ls())
-load(here("Baseline_Survey/data/MOUSTIQUAIRE.RData"))
+load("../data/MOUSTIQUAIRE.RData")
 
 # Administrative data #############################################################
 moustiquaire <- moustiquaire %>% select(-contains(c("autre", "nr")))
@@ -390,9 +390,9 @@ cat_xc_df <- cat_xc_df %>% left_join(cat_questions_xc, by = "variable") %>%
 #rbind both categorical dataframes
 df_cat <- rbind(cat_1c_df, cat_xc_df)
 #Save it
-saveRDS(df_cat, file = here("Baseline_Survey/preprocessing/moustiquaire_cat.rds"))
+saveRDS(df_cat, file = "../madagascar_app/data/moustiquaire_cat.rds")
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
 #Save it
-saveRDS(df_num, file = here("Baseline_Survey/preprocessing/moustiquaire_num.rds"))
+saveRDS(df_num, file = "../madagascar_app/data/moustiquaire_num.rds")

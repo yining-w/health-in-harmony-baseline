@@ -15,7 +15,7 @@ library(shinycssloaders)
 library(here)
 
 # Loading coordinates ---------------------------------------------------------------------
-load(here("Baseline_Survey/data/GPSnew.RData"))
+load("data/GPSnew.RData")
 
 #Transform GPS data into vector data
 gps<-st_as_sf(x=gps,
@@ -30,7 +30,7 @@ gps = gps %>% rename(
 )
 
 # Adding population (size of the circle) --------------------------------------------------
-load(here("Baseline_Survey/data/MENAGE.RData"))
+load("data/MENAGE.RData")
 population <- menage %>% select(village_code = hh1, 
                                 reserve_section = hhstrate, 
                                 household_members = hh48) %>%
@@ -41,12 +41,12 @@ population <- menage %>% select(village_code = hh1,
 gps <- gps %>% left_join(population, by = c("hh_village_code" = "village_code"))
 
 # Reading Survey Data ---------------------------------------------------------------------
-num_df <- list.files(path = here("Baseline_Survey/preprocessing"),
+num_df <- list.files(path = "data",
                      pattern = "*num.rds$",
                      full.names = TRUE) %>%
         map_dfr(readRDS) %>% ungroup()
 
-cat_df <- list.files(path = here("Baseline_Survey/preprocessing"),
+cat_df <- list.files(path = "data",
                      pattern = "*cat.rds$",
                      full.names = TRUE) %>%
         map_dfr(readRDS) %>% ungroup()
