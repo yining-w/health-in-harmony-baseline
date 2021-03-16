@@ -1,7 +1,7 @@
 library(tidyverse)
 library(here)
 
-load(here("Baseline_Survey/data/femme.RData"))
+load("../data/femme.RData")
 
 # Administrative data #############################################################
 
@@ -788,9 +788,9 @@ cat_xc_df <- cat_xc_df %>% left_join(cat_questions_xc, by = "variable") %>%
 #rbind both categorical dataframes
 df_cat <- rbind(cat_1c_df, cat_xc_df)
 #Save it
-saveRDS(df_cat, file = here("Baseline_Survey/preprocessing/femme_cat.rds"))
+saveRDS(df_cat, file = "../madagascar_app/data/femme_cat.rds")
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
 #Save it
-saveRDS(df_num, file = here("Baseline_Survey/preprocessing/femme_num.rds"))
+saveRDS(df_num, file = "../madagascar_app/data/femme_num.rds")

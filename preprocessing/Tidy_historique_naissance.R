@@ -2,7 +2,7 @@ library(tidyverse)
 library(lubridate)
 library(here)
 
-load(here("Baseline_Survey/data/HISTORIQUE_NAISSANCE.RData"))
+load("../data/HISTORIQUE_NAISSANCE.RData")
 
 historique_naissance <- historique_naissance %>% 
         rename(intervier = wm5,
@@ -201,9 +201,9 @@ cat_1c_df <- bind_rows(cat_1c_df) %>%
 # Final changes ###################################################################
 ###################################################################################
 #Save categorical
-saveRDS(cat_1c_df, file = here("Baseline_Survey/preprocessing/historique_naissance_cat.rds"))
+saveRDS(cat_1c_df, file = "../madagascar_app/data/historique_naissance_cat.rds")
 
 #rbind boolean df and average df
 df_num <- rbind(bool_df, avg_df)
 #Save it
-saveRDS(df_num, file = here("Baseline_Survey/preprocessing/historique_naissance_num.rds"))
+saveRDS(df_num, file = "../madagascar_app/data/historique_naissance_num.rds")
