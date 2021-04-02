@@ -1,6 +1,6 @@
 # Objective
 
-The objective of the project was to create a map visualisation of the census done by Health In Harmony. 
+The objective of the project was to create a map visualisation of the census done by Health In Harmony. You can access the final product <a href = "https://felipemonroy.shinyapps.io/shinyapp/"> here </a>
 
 # About the census
 
